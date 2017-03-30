@@ -48,7 +48,8 @@ dependencies {
 
     /* Testing dependencies*/
 
+    /* Validation */
+    compile 'com.mobsandgeeks:android-saripaar:2.0.3'
 }
-
 
 apply plugin: 'com.google.gms.google-services'

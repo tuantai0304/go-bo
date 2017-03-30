@@ -22,11 +22,14 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <ImageView
+    <TextView
+            android:text="New user"
+            android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_slideshow"
-    />
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:layout_height="wrap_content" android:id="@+id/textView4"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,23 +65,23 @@
 
     <Spinner
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/spinner"
+            android:layout_height="wrap_content" android:id="@+id/spnGenders"
             android:layout_margin="@dimen/activity_horizontal_margin"
             android:entries="@array/genders"/>
-
-    <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/genders"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:entries="@array/languages"
-            android:prompt="Select your genders"
-    />
 
 
     <Button
             android:text="@string/register"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/button"/>
+            android:layout_height="wrap_content" android:id="@+id/btnRegister"/>
+
+    <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:id="@+id/progressBar"/>
 
 </LinearLayout>
+
