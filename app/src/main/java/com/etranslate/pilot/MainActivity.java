@@ -40,10 +40,10 @@ public class MainActivity extends AppCompatActivity
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
-//        if (mFirebaseUser == null) {
-            startActivity(new Intent(this, RegisterActivity.class));
+        if (mFirebaseUser == null) {
+            startActivity(new Intent(this, UserLoginActivity.class));
             finish();
-//        }
+        }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -116,8 +116,9 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.nav_logout) {
+            mFirebaseAuth.signOut();
+            startActivity(new Intent(getApplicationContext(), UserLoginActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
