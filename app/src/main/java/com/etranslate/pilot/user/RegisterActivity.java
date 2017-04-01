@@ -9,6 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.*;
+
+import com.etranslate.pilot.BaseActivity;
+import com.etranslate.pilot.IDbAccessCallback;
 import com.etranslate.pilot.MainActivity;
 import com.etranslate.pilot.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -27,7 +30,7 @@ import com.mobsandgeeks.saripaar.annotation.Password;
 
 import java.util.List;
 
-public class RegisterActivity extends AppCompatActivity implements Validator.ValidationListener {
+public class RegisterActivity extends BaseActivity implements Validator.ValidationListener {
 
     @NotEmpty
 //    @Email(message = "Please enter an valid email")
@@ -43,10 +46,7 @@ public class RegisterActivity extends AppCompatActivity implements Validator.Val
     Button btnRegister;
     ProgressBar progressBar;
 
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-    private DatabaseReference mFirebaseDatabaseReference;
+
 
     private  String Uid;
 
@@ -79,10 +79,6 @@ public class RegisterActivity extends AppCompatActivity implements Validator.Val
         /* Set validation */
         validator = new Validator(this);
         validator.setValidationListener(this);
-
-        // Initialize Firebase Auth
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
     }
 
     @Override
@@ -121,26 +117,22 @@ public class RegisterActivity extends AppCompatActivity implements Validator.Val
         String lname = edtLName.getText().toString().trim();
         String gender = spnGender.getSelectedItem().toString();
 
-//        UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder()
-//                .
-
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
-//        UserProfileChangeRequest request = mFirebaseUser.getUid();
         if (mFirebaseUser != null) {
-            Uid = mFirebaseUser.getUid();
             UserInfo info = new UserInfo(fname, lname, gender);
-            mFirebaseDatabaseReference.child("UserInfo").child(Uid).setValue(info)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (!task.isSuccessful()) {
-                                Toast.makeText(getApplicationContext(), "User account is created, but infomration not updated", Toast.LENGTH_SHORT);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Registered Success", Toast.LENGTH_SHORT);
-                            }
+
+            m_dbUserInfo.push().setValue(info)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(getApplicationContext(), "User account is created, but infomration not updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Registered Success", Toast.LENGTH_SHORT).show();
                         }
-                    });
+                    }
+                });
         }
     }
 

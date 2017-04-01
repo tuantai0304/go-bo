@@ -24,6 +24,45 @@
     <string name="enter_email">Enter Email</string>
     <string name="register">Register</string>
 
+    <!-- Firebase Database and Property -->
+    <string name="tbl_UserInfo">UserInfo</string>
+    <string name="tbl_Rooms">rooms</string>
+    <string name="tbl_Users">users</string>
+
+    <!-- UserInfo fields-->
+    <string name="f_Country">Country</string>
+    <string name="f_FName">FirstName</string>
+    <string name="f_LName">lastName</string>
+    <string name="f_Gender">Gender</string>
+    <string name="f_Lat">Latitude</string>
+    <string name="f_Long">Longitude</string>
+    <string name="f_Password">Password</string>
+    <string name="f_SourceLang">SourceLang</string>
+    <string name="f_User">User</string>
+    <string name="f_Dob">dateofbirth</string>
+    <string name="f_ID">id</string>
+    <string name="f_tar_lang1">targetLang1</string>
+    <string name="f_tar_lang2">targetLang2</string>
+    <string name="f_tar_lang3">targetLang3</string>
+    <string name="f_tar_lang4">targetLang4</string>
+    <string name="f_tar_lang5">targetLang5</string>
+    <string name="f_tar_lang6">targetLang6</string>
+
+    <!-- rooms fields -->
+    <string name="f_VideoTranslated">VideoTranslated</string>
+    <string name="f_acceptedRequest">acceptedRequest</string>
+    <string name="f_createdUser">createdUser</string>
+    <string name="f_finished">finished</string>
+    <string name="f_imageTranslated">imageTranslated</string>
+    <string name="f_key">key</string>
+    <string name="f_modeSelect">modeselect</string>
+    <string name="f_srcLang">sourceLang</string>
+    <string name="f_tarLang">targetLang</string>
+    <string name="f_translatorId">translatorId</string>
+    <string name="f_videoTranslated">videoTranslated</string>
+    <string name="f_voiceMsgTranslated">voiceMsgTranslated</string>
+
+
 
     <string-array name="genders">
         <item>Select your gender</item>

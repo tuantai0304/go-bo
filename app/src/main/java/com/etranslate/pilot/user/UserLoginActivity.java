@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 
+import com.etranslate.pilot.BaseActivity;
 import com.etranslate.pilot.MainActivity;
 import com.etranslate.pilot.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,7 +34,9 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  * A login screen that offers login via email/password.
  */
-public class UserLoginActivity extends AppCompatActivity implements Validator.ValidationListener {
+public class UserLoginActivity extends BaseActivity
+//        implements Validator.ValidationListener
+{
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -64,11 +67,6 @@ public class UserLoginActivity extends AppCompatActivity implements Validator.Va
 
     private View mProgressView;
     private View mLoginFormView;
-
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-    private DatabaseReference mFirebaseDatabaseReference;
 
     private  String Uid;
 
@@ -113,8 +111,8 @@ public class UserLoginActivity extends AppCompatActivity implements Validator.Va
         validator.setValidationListener(this);
 
         // Initialize Firebase Auth
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+//        mFirebaseAuth = FirebaseAuth.getInstance();
+
     }
 
     private void attemptLogin() {
@@ -191,19 +189,19 @@ public class UserLoginActivity extends AppCompatActivity implements Validator.Va
 
     }
 
-    @Override
-    public void onValidationFailed(List<ValidationError> errors) {
-        for (ValidationError error : errors) {
-            View view = error.getView();
-            String message = error.getCollatedErrorMessage(this);
-
-            // Display error messages ;)
-            if (view instanceof EditText) {
-                ((EditText) view).setError(message);
-            } else {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
+//    @Override
+//    public void onValidationFailed(List<ValidationError> errors) {
+//        for (ValidationError error : errors) {
+//            View view = error.getView();
+//            String message = error.getCollatedErrorMessage(this);
+//
+//            // Display error messages ;)
+//            if (view instanceof EditText) {
+//                ((EditText) view).setError(message);
+//            } else {
+//                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+//            }
+//        }
+//    }
 }
 

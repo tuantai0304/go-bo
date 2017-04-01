@@ -1,6 +1,7 @@
 package com.etranslate.pilot;
 
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -20,13 +21,24 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-    private DatabaseReference mFirebaseDatabaseReference;
+    /* Static variable */
+//    public static final String USER_INFO = "UserInfo";
+//    public static final String USERS = "users";
+//    public static final String ROOMS = "rooms";
+//    public static final String COUNTRY = "rooms";
+//    public static final String EMAIL = "rooms";
+//    public static final String ROOMS =  "rooms";
+//    public static final String ROOMS = "rooms";
+//    public static final String ROOMS = "rooms";
+//    public static final String ROOMS = "rooms";
+//    public static final String ROOMS = "rooms";
+//    public static final String ROOMS = "rooms";
+//    public static final String ROOMS = "rooms";
+
+
 
 
     @Override
@@ -36,9 +48,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        /* Get Firebase auth */
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser();
+
 
         if (mFirebaseUser == null) {
             startActivity(new Intent(this, UserLoginActivity.class));
