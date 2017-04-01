@@ -1,28 +1,36 @@
 package com.etranslate.pilot;
 
 import android.content.Intent;
-import android.content.res.AssetManager;
-import android.os.AsyncTask;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.etranslate.pilot.user.RegisterActivity;
+import android.widget.RelativeLayout;
+
+import com.etranslate.pilot.dummy.DummyContent;
 import com.etranslate.pilot.user.UserLoginActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+                    RequestFragment.OnFragmentInteractionListener,
+                    RequestListFragment.OnListFragmentInteractionListener
+{
 
     /* Static variable */
 //    public static final String USER_INFO = "UserInfo";
@@ -38,16 +46,18 @@ public class MainActivity extends BaseActivity
 //    public static final String ROOMS = "rooms";
 //    public static final String ROOMS = "rooms";
 
-
-
+//    View content_main;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        content_main = findViewById(R.id.content_main);
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
 
         if (mFirebaseUser == null) {
@@ -112,17 +122,29 @@ public class MainActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+
+        android.app.FragmentManager app_Fragment_Manager = getFragmentManager();
+        android.app.FragmentTransaction app_tx = app_Fragment_Manager.beginTransaction();
+//        Fragment fragment = new Fragment();
+
+        if (id == R.id.nav_request) {
             // Handle the camera action
             /* Start LoginActivity if user not login */
-            if (true) {
-                startActivity(new Intent(this, UserLoginActivity.class));
-            }
-        } else if (id == R.id.nav_gallery) {
+            Fragment fragment = new RequestFragment();
+            transaction.replace(R.id.content_main, fragment);
+            transaction.commit();
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_history) {
+            Fragment fragment = new RequestFragment();
+            transaction.replace(R.id.content_main, fragment);
+            transaction.commit();
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_all_requests) {
+            Fragment fragment = new RequestListFragment();
+            transaction.replace(R.id.content_main, fragment);
+            transaction.commit();
 
         } else if (id == R.id.nav_share) {
 
@@ -131,8 +153,20 @@ public class MainActivity extends BaseActivity
             startActivity(new Intent(getApplicationContext(), UserLoginActivity.class));
         }
 
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
     }
 }

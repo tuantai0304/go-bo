@@ -3,8 +3,10 @@ package com.etranslate.pilot;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -14,16 +16,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
+import com.mobsandgeeks.saripaar.Validator.ValidationListener;
 
 import java.util.List;
 
 /**
- * Created by TuanTai on 31/03/2017.
+ * Created by TuanTai on 1/04/2017.
  */
-public abstract class BaseActivity extends AppCompatActivity
-        implements Validator.ValidationListener{
 
-
+public abstract class BaseFragment extends Fragment
+        implements ValidationListener {
     /* Variables */
     Resources res;
 //    String s =  res.getString(R.string.f_ID);
@@ -36,11 +38,11 @@ public abstract class BaseActivity extends AppCompatActivity
     protected DatabaseReference m_dbUsers; /* Users db*/
     protected DatabaseReference m_dbUserInfo;
     protected DatabaseReference m_dbRooms;
+    protected DatabaseReference m_dbRequest;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         res = getResources();
 
         /* Get Firebase auth */
@@ -58,6 +60,30 @@ public abstract class BaseActivity extends AppCompatActivity
         m_dbRooms = mFirebaseDatabaseReference.child(
                 res.getString(R.string.tbl_Rooms));
 
+        m_dbRequest = mFirebaseDatabaseReference.child(
+                res.getString(R.string.tbl_Request));
+
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     @Override
@@ -69,13 +95,13 @@ public abstract class BaseActivity extends AppCompatActivity
     public void onValidationFailed(List<ValidationError> errors) {
         for (ValidationError error : errors) {
             View view = error.getView();
-            String message = error.getCollatedErrorMessage(this);
+            String message = error.getCollatedErrorMessage(getActivity());
 
             // Display error messages ;)
             if (view instanceof EditText) {
                 ((EditText) view).setError(message);
             } else {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_LONG).show();
             }
         }
     }

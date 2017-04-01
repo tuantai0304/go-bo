@@ -14,8 +14,11 @@
     tools:showIn="@layout/app_bar_main"
     tools:context="com.etranslate.pilot.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/fragment_test"
+        android:orientation="vertical"/>
+
 </RelativeLayout>

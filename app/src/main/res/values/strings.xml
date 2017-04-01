@@ -23,10 +23,12 @@
     <string name="enter_password">Enter password</string>
     <string name="enter_email">Enter Email</string>
     <string name="register">Register</string>
+    <string name="request">Request service</string>
 
     <!-- Firebase Database and Property -->
     <string name="tbl_UserInfo">UserInfo</string>
     <string name="tbl_Rooms">rooms</string>
+    <string name="tbl_Request">requests</string>
     <string name="tbl_Users">users</string>
 
     <!-- UserInfo fields-->
@@ -63,7 +65,6 @@
     <string name="f_voiceMsgTranslated">voiceMsgTranslated</string>
 
 
-
     <string-array name="genders">
         <item>Select your gender</item>
         <item>Male</item>
@@ -71,11 +72,19 @@
     </string-array>
 
     <string-array name="languages">
-        <item>Select your language</item>
         <item>German</item>
         <item>English</item>
         <item>Chinese</item>
         <item>Vietnamesse</item>
     </string-array>
+
+    <string-array name="modes">
+        <item>Video Conference</item>
+        <item>Real time chat</item>
+        <item>Image</item>
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -1,4 +1,4 @@
-package com.etranslate.pilot.user;
+package com.etranslate.pilot.dto;
 
 import java.util.ArrayList;
 
