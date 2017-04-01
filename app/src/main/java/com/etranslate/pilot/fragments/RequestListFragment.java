@@ -1,8 +1,7 @@
-package com.etranslate.pilot;
+package com.etranslate.pilot.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,13 +12,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Request;
-import com.etranslate.pilot.dummy.DummyContent;
 import com.etranslate.pilot.dummy.DummyContent.DummyItem;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 

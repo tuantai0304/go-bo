@@ -1,4 +1,4 @@
-package com.etranslate.pilot;
+package com.etranslate.pilot.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Request;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;

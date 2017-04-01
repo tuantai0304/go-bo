@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.etranslate.pilot.RequestFragment">
+    tools:context="com.etranslate.pilot.fragments.RequestFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <ProgressBar
