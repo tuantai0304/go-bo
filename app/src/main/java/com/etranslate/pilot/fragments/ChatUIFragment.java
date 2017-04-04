@@ -2,8 +2,11 @@ package com.etranslate.pilot.fragments;
 
 
 import android.content.Intent;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -33,6 +36,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.app.Activity.RESULT_OK;
@@ -48,6 +53,7 @@ public class ChatUIFragment extends BaseFragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public static final String ARG_ROOMID = "roomId";
     public static final String ARG_PARAM2 = "param2";
+    private static final int CAPTURE_IMAGE = 3;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -60,6 +66,8 @@ public class ChatUIFragment extends BaseFragment {
     private ProgressBar mProgressBar;
     private EditText mMessageEditText;
     private ImageView mAddMessageImageView;
+    private ImageView mVoiceMessageImageView;
+    private ImageView mImageMessageImageView;
 
     /* Firebase elements */
     private FirebaseRecyclerAdapter<Message, MessageViewHolder>
@@ -250,45 +258,89 @@ public class ChatUIFragment extends BaseFragment {
             }
         });
 
+//        final File[] img = new File[1];
+
+        mImageMessageImageView = (ImageView) v.findViewById(R.id.imageMessageImageView);
+        mImageMessageImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Select image for image message on click.
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                img =
+
+                Uri uri = Uri.fromFile(img);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+//                intent.addCategory(Intent.CATEGORY_OPENABLE);
+//                intent.setType("image/*");
+                startActivityForResult(intent, CAPTURE_IMAGE);
+            }
+        });
+
         return v;
     }
+
+    final File img = new File(Environment
+            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "test.jpg");;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(TAG, "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+//        Log.i(TAG, "onActivityResult: data=" + data.toString());
 
         if (requestCode == REQUEST_IMAGE) {
             if (resultCode == RESULT_OK) {
                 if (data != null) {
                     final Uri uri = data.getData();
                     Log.d(TAG, "Uri: " + uri.toString());
+                    Log.d(TAG, "data: " + data.toString());
 
-                    Message tempMessage = new Message(LOADING_IMAGE_URL, mFirebaseUser.getUid());
-                    m_dbMessage.child(roomId).push()
-                            .setValue(tempMessage, new DatabaseReference.CompletionListener() {
-                                @Override
-                                public void onComplete(DatabaseError databaseError,
-                                                       DatabaseReference databaseReference) {
-                                    if (databaseError == null) {
-                                        String key = databaseReference.getKey();
-                                        StorageReference storageReference =
-                                                FirebaseStorage.getInstance()
-                                                        .getReference()
-//                                                        .getReference(mFirebaseUser.getUid())
-                                                        .child(roomId)
-                                                        .child(uri.getLastPathSegment());
-
-                                        putImageInStorage(storageReference, uri, key);
-                                    } else {
-                                        Log.w(TAG, "Unable to write message to database.",
-                                                databaseError.toException());
-                                    }
-                                }
-                            });
+                    addNewImageMessage(uri);
                 }
             }
         }
+
+//        Camera c = Camera.open();
+//        c.takePicture();
+        if (requestCode == CAPTURE_IMAGE) {
+            if (resultCode == RESULT_OK) {
+//                Log.i(TAG, "onActivityResult: ");
+//                if (data != null) {
+//                    Bundle bundle = new Bundle();
+//                    bundle = data.getExtras();
+//                    Log.i(TAG, "onActivityResult: new Image" + bundle.get("data"));
+//                }
+                final Uri uri = Uri.fromFile(img);
+                addNewImageMessage(uri);
+//
+            }
+        }
+    }
+
+    private void addNewImageMessage(final Uri uri) {
+        Message tempMessage = new Message(LOADING_IMAGE_URL, mFirebaseUser.getUid());
+        m_dbMessage.child(roomId).push()
+                .setValue(tempMessage, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError databaseError,
+                                           DatabaseReference databaseReference) {
+                        if (databaseError == null) {
+                            String key = databaseReference.getKey();
+                            StorageReference storageReference =
+                                    FirebaseStorage.getInstance()
+                                            .getReference()
+//                                                        .getReference(mFirebaseUser.getUid())
+                                            .child(roomId)
+                                            .child(uri.getLastPathSegment());
+
+                            putImageInStorage(storageReference, uri, key);
+                        } else {
+                            Log.w(TAG, "Unable to write message to database.",
+                                    databaseError.toException());
+                        }
+                    }
+                });
     }
 
     private void putImageInStorage(StorageReference storageReference, Uri uri, final String key) {

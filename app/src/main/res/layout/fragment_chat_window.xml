@@ -27,7 +27,18 @@
             android:id="@+id/addMessageImageView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            ads:srcCompat="@drawable/ic_add_black_24dp"/>
+            ads:srcCompat="@drawable/ic_menu_gallery"/>
+
+        <ImageView
+                    android:id="@+id/voiceMessageImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    ads:srcCompat="@android:drawable/presence_audio_online"/>
+        <ImageView
+                    android:id="@+id/imageMessageImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    ads:srcCompat="@drawable/ic_menu_camera"/>
 
         <EditText
             android:id="@+id/messageEditText"
