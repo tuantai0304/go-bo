@@ -144,7 +144,12 @@ public class MainActivity extends BaseActivity
             transaction.commit();
 
         } else if (id == R.id.nav_share) {
+            Bundle bundle = new Bundle();
+            String key = "-KgrP_5NT0MZ5GeW3VFT";
+            bundle.putString(ChatUIFragment.ARG_ROOMID, key);
+
             Fragment fragment = new ChatUIFragment();
+            fragment.setArguments(bundle);
             transaction.replace(R.id.content_main, fragment);
             transaction.commit();
 

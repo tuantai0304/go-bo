@@ -167,9 +167,9 @@ public class RequestListFragment extends BaseFragment {
     private void acceptRequest(final DatabaseReference requestRef) {
         final String new_room_key = m_dbRooms.push().getKey();
 //        final String requestID = requestRef.getKey();
-
+//        Log.i("New room key", "changeToChatFragment: " + new_room_key);
 //        Request request;
-        requestRef.addValueEventListener(new ValueEventListener() {
+        requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -192,8 +192,7 @@ public class RequestListFragment extends BaseFragment {
                                 requestRef.child("acceptStatus").setValue("accepted");
                             }
                         }
-                    })
-                ;
+                    });
 
             }
 
@@ -205,12 +204,12 @@ public class RequestListFragment extends BaseFragment {
     }
 
     private void changeToChatFragment(String new_room_key) {
-        /* Change to chat UI screen */
-        ChatUIFragment chatUIFragment = new ChatUIFragment();
 
         Bundle bundle = new Bundle();
         bundle.putString(ChatUIFragment.ARG_ROOMID, new_room_key);
 
+        /* Change to chat UI screen */
+        ChatUIFragment chatUIFragment = new ChatUIFragment();
 
         chatUIFragment.setArguments(bundle);
 

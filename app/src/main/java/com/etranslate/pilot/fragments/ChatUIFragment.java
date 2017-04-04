@@ -127,7 +127,7 @@ public class ChatUIFragment extends BaseFragment {
                 Message.class,
                 R.layout.item_message,
                 MessageViewHolder.class,
-                m_dbMessage.equalTo(roomId).getRef().orderByChild("roomId").equalTo(roomId)) {
+                m_dbMessage.child(roomId)) {
 
             @Override
             protected void populateViewHolder(final MessageViewHolder viewHolder, Message friendlyMessage, int position) {
@@ -274,8 +274,9 @@ public class ChatUIFragment extends BaseFragment {
                                         String key = databaseReference.getKey();
                                         StorageReference storageReference =
                                                 FirebaseStorage.getInstance()
-                                                        .getReference(mFirebaseUser.getUid())
-                                                        .child(key)
+                                                        .getReference()
+//                                                        .getReference(mFirebaseUser.getUid())
+                                                        .child(roomId)
                                                         .child(uri.getLastPathSegment());
 
                                         putImageInStorage(storageReference, uri, key);
@@ -298,10 +299,10 @@ public class ChatUIFragment extends BaseFragment {
                         if (task.isSuccessful()) {
                             Message friendlyMessage =
                                     new Message(null, "media", task.getResult().getMetadata().getDownloadUrl()
-                                            .toString(), null, null,
+                                            .toString(), null, roomId,
                                             mFirebaseUser.getUid(),
                                             mFirebaseUser.getDisplayName());
-                            m_dbMessage.child(key)
+                            m_dbMessage.child(roomId).child(key)
                                     .setValue(friendlyMessage);
                         } else {
                             Log.w("Firebase", "Image upload task was not successful.",
