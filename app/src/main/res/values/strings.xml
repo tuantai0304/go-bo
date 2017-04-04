@@ -30,6 +30,7 @@
     <string name="tbl_Rooms">rooms</string>
     <string name="tbl_Request">requests</string>
     <string name="tbl_Users">users</string>
+    <string name="tbl_Message">messages</string>
 
     <!-- UserInfo fields-->
     <string name="f_Country">Country</string>
@@ -86,5 +87,6 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
 
 </resources>

@@ -2,6 +2,9 @@ package com.etranslate.pilot.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -9,13 +12,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Request;
+import com.etranslate.pilot.dto.Room;
 import com.etranslate.pilot.dummy.DummyContent.DummyItem;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -85,56 +97,39 @@ public class RequestListFragment extends BaseFragment {
             mFirebaseAdapter = new FirebaseRecyclerAdapter<Request,
                     RequestViewHolder>(
                     Request.class,
-                    R.layout.item_message,
+                    R.layout.item_request,
                     RequestViewHolder.class,
-                    m_dbRequest) {
+                    m_dbRequest.orderByChild("acceptStatus").equalTo("new")) {
                 @Override
-                protected void populateViewHolder(RequestViewHolder viewHolder, Request request, int position) {
-                    if (request.getSrcLang() != null) {
-                        viewHolder.messageTextView.setText(request.getSrcLang());
-                        viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
-                        viewHolder.messageImageView.setVisibility(ImageView.GONE);
-                    } else {
-//                        String imageUrl = friendlyMessage.getImageUrl();
-//                        if (imageUrl.startsWith("gs://")) {
-//                            StorageReference storageReference = FirebaseStorage.getInstance()
-//                                    .getReferenceFromUrl(imageUrl);
-//                            storageReference.getDownloadUrl().addOnCompleteListener(
-//                                    new OnCompleteListener<Uri>() {
-//                                        @Override
-//                                        public void onComplete(@NonNull Task<Uri> task) {
-//                                            if (task.isSuccessful()) {
-//                                                String downloadUrl = task.getResult().toString();
-//                                                Glide.with(viewHolder.messageImageView.getContext())
-//                                                        .load(downloadUrl)
-//                                                        .into(viewHolder.messageImageView);
-//                                            } else {
-//                                                Log.w(TAG, "Getting download url was not successful.",
-//                                                        task.getException());
-//                                            }
-//                                        }
-//                                    });
-//                        } else {
-//                            Glide.with(viewHolder.messageImageView.getContext())
-//                                    .load(friendlyMessage.getImageUrl())
-//                                    .into(viewHolder.messageImageView);
-//                        }
-//                        viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
-//                        viewHolder.messageTextView.setVisibility(TextView.GONE);
-                    }
+                protected void populateViewHolder(RequestViewHolder viewHolder, final Request request, final int position) {
 
+//                    if (request.getAcceptStatus().equals("new")) {
+                        String mode = request.getMode();
+                        switch (mode) {
+                            case "Real time chat":
+                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_chat));
+                                break;
+                            case "Video Conference":
+                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_call));
+                                break;
+                            case "Image":
+                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_menu_report_image));
+                                break;
 
-                    viewHolder.messengerTextView.setText(request.getTarLang());
-                    Log.i("View holder text", "populateViewHolder: " + viewHolder.messengerTextView.getText());
-//                    if (friendlyMessage.getPhotoUrl() == null) {
-//                        viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(MainActivity.this,
-//                                R.drawable.ic_account_circle_black_36dp));
-//                    } else {
-//                        Glide.with(MainActivity.this)
-//                                .load(friendlyMessage.getPhotoUrl())
-//                                .into(viewHolder.messengerImageView);
+                        }
+                        viewHolder.langToLangTextView.setText(request.getSrcLang() + " to " + request.getTarLang());
+
+                        viewHolder.btnAccept.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                acceptRequest(getRef(position));
+                            }
+                        });
 //                    }
                 }
+
+
+
             };
 
             mLinearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
@@ -165,6 +160,67 @@ public class RequestListFragment extends BaseFragment {
         return view;
     }
 
+    /* When translator accept a request
+    * create a new chat room
+    *
+    * */
+    private void acceptRequest(final DatabaseReference requestRef) {
+        final String new_room_key = m_dbRooms.push().getKey();
+//        final String requestID = requestRef.getKey();
+
+//        Request request;
+        requestRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                /*Get request info*/
+                Request request = dataSnapshot.getValue(Request.class);
+
+                /* Change the roomId field of the current requestRef */
+                requestRef.child("roomId").setValue(new_room_key);
+                Log.i("New room key", "changeToChatFragment: " + new_room_key);
+
+                /* Create new room */
+                Room room = new Room( request.getUserID(), mFirebaseUser.getUid() );
+                m_dbRooms.child(new_room_key).setValue(room)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                changeToChatFragment(new_room_key);
+                                /* Change status of the request  */
+                                requestRef.child("acceptStatus").setValue("accepted");
+                            }
+                        }
+                    })
+                ;
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void changeToChatFragment(String new_room_key) {
+        /* Change to chat UI screen */
+        ChatUIFragment chatUIFragment = new ChatUIFragment();
+
+        Bundle bundle = new Bundle();
+        bundle.putString(ChatUIFragment.ARG_ROOMID, new_room_key);
+
+
+        chatUIFragment.setArguments(bundle);
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        FragmentTransaction tx = fm.beginTransaction();
+        tx.replace(R.id.content_main , chatUIFragment);
+        tx.commit();
+
+    }
+
 
     @Override
     public void onAttach(Context context) {
@@ -183,18 +239,18 @@ public class RequestListFragment extends BaseFragment {
         mListener = null;
     }
 
-    public static class RequestViewHolder extends RecyclerView.ViewHolder {
-        public TextView messageTextView;
-        public ImageView messageImageView;
-        public TextView messengerTextView;
-        public CircleImageView messengerImageView;
+    private static class RequestViewHolder extends RecyclerView.ViewHolder {
+        public TextView langToLangTextView;
+        public ImageView modeImageView;
+        public TextView userTextView;
+        public Button btnAccept;
 
         public RequestViewHolder(View v) {
             super(v);
-            messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
-            messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
-            messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
-            messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
+            langToLangTextView = (TextView) itemView.findViewById(R.id.langToLangTextView);
+            modeImageView = (ImageView) itemView.findViewById(R.id.modeImageView);
+            userTextView = (TextView) itemView.findViewById(R.id.userTextView);
+            btnAccept = (Button) itemView.findViewById(R.id.btnAccept);
         }
     }
 

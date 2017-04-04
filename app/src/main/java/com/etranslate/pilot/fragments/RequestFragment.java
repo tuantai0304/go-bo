@@ -1,10 +1,15 @@
 package com.etranslate.pilot.fragments;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +21,10 @@ import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Request;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 
 /**
@@ -43,6 +52,7 @@ public class RequestFragment extends BaseFragment {
     Spinner spnTarLang;
     Spinner spnModes;
     Button btnRequest;
+    ProgressDialog waitingTranslatorDialog;
 
     public RequestFragment() {
         // Required empty public constructor
@@ -87,9 +97,17 @@ public class RequestFragment extends BaseFragment {
         btnRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                waitingTranslatorDialog.show();
                 requestTranslateService();
             }
         });
+
+        waitingTranslatorDialog = new ProgressDialog(getActivity());
+        waitingTranslatorDialog.setMessage("Please wait...");
+        waitingTranslatorDialog.setTitle("Finding a translator");
+        waitingTranslatorDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        waitingTranslatorDialog.setCanceledOnTouchOutside(false);
+
         return v;
     }
 
@@ -98,16 +116,69 @@ public class RequestFragment extends BaseFragment {
         String tarLang = spnTarLang.getSelectedItem().toString();
         String mode = spnModes.getSelectedItem().toString();
 
-        Request req = new Request(srcLang, tarLang, mode, mFirebaseUser, null);
-        m_dbRequest.push().setValue(req)
+        Request req = new Request(srcLang, tarLang, mode, null, null, mFirebaseUser.getUid());
+        /* Add to database */
+        final DatabaseReference new_request_ref = m_dbRequest.push();
+        String key = new_request_ref.getKey();
+
+        new_request_ref.setValue(req)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
                             Toast.makeText(getActivity().getApplicationContext(), "New request created", Toast.LENGTH_SHORT).show();
                         }
+                        waitingTranslatorDialog.show();
+
+                        waitingTranslatorDialog.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel request", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                new_request_ref.removeValue();
+                            }
+                        });
+
                     }
                 });
+
+        /*
+        *
+        *
+        * Set listener for accept status
+        *
+        * */
+        new_request_ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Request req = dataSnapshot.getValue(Request.class);
+                if (req != null) {
+                    String status = req.getAcceptStatus();
+                    if (status.equals("accepted")) {
+                        /* TODO: Change to chat UI changing here*/
+                        waitingTranslatorDialog.dismiss();
+
+                        /* Get roomKey */
+                        req.getRoomId();
+                        Bundle b = new Bundle();
+                        b.putString(ChatUIFragment.ARG_ROOMID, req.getRoomId());
+
+                        /* Change to chat UI screen */
+                        ChatUIFragment chatUIFragment = new ChatUIFragment();
+                        chatUIFragment.setArguments(b);
+                        FragmentManager fm = getActivity().getSupportFragmentManager();
+                        FragmentTransaction tx = fm.beginTransaction();
+                        tx.replace(R.id.content_main , chatUIFragment);
+                        tx.commit();
+                    }
+                    Log.i("onDataChange", "onDataChange: " + req.getAcceptStatus());
+                    Log.i("RoomID", "onDataChange: " + req.getRoomId());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     // TODO: Rename method, update argument and hook method into UI event

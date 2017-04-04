@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.etranslate.pilot.dummy.DummyContent;
+import com.etranslate.pilot.fragments.ChatUIFragment;
 import com.etranslate.pilot.fragments.RequestFragment;
 import com.etranslate.pilot.fragments.RequestListFragment;
 import com.etranslate.pilot.user.UserLoginActivity;
@@ -143,6 +144,9 @@ public class MainActivity extends BaseActivity
             transaction.commit();
 
         } else if (id == R.id.nav_share) {
+            Fragment fragment = new ChatUIFragment();
+            transaction.replace(R.id.content_main, fragment);
+            transaction.commit();
 
         } else if (id == R.id.nav_logout) {
             mFirebaseAuth.signOut();

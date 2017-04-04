@@ -15,16 +15,38 @@ public class Request {
 
 //    public String[] STATUS = {"accepted", "rejected", "done", "ongoing", "new"};
 
+    private String ID;
     private String srcLang;
     private String tarLang;
     private String mode;
 
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+
+    private String roomId;
+
     private String acceptStatus;
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
+    private String userID;
 
     private Object timestamp;
 
     private FirebaseUser user;
     private FirebaseUser translator;
+
 
     public Object getTimestamp() {
         return timestamp;
@@ -34,16 +56,33 @@ public class Request {
         this.timestamp = timestamp;
     }
 
-    public Request(String srcLang, String tarLang, String mode, FirebaseUser user, FirebaseUser translator) {
+    public void setID(String ID) {
+        this.ID = ID;
+    }
+
+    public Request(String Id, String srcLang, String tarLang, String mode, FirebaseUser user, FirebaseUser translator) {
         this.srcLang = srcLang;
         this.tarLang = tarLang;
         this.mode = mode;
         this.user = user;
         this.acceptStatus = "new";
         this.translator = translator;
-
+        setID(Id);
         this.timestamp = ServerValue.TIMESTAMP;
     }
+
+    public Request(String srcLang, String tarLang, String mode, FirebaseUser user, FirebaseUser translator, String userId) {
+        this.srcLang = srcLang;
+        this.tarLang = tarLang;
+        this.mode = mode;
+        this.user = user;
+        this.acceptStatus = "new";
+        this.translator = translator;
+        this.timestamp = ServerValue.TIMESTAMP;
+        setUserID(userId);
+    }
+
+
 
     public Request() {
 
@@ -101,5 +140,9 @@ public class Request {
         if (translator != null) {
             acceptStatus = "accepted";
         }
+    }
+
+    public String getID() {
+        return ID;
     }
 }

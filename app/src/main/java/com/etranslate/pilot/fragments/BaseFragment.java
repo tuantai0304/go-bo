@@ -1,9 +1,13 @@
 package com.etranslate.pilot.fragments;
 
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +15,15 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.etranslate.pilot.R;
+import com.etranslate.pilot.dto.Message;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.Validator.ValidationListener;
@@ -40,6 +49,9 @@ public abstract class BaseFragment extends Fragment
     protected DatabaseReference m_dbUserInfo;
     protected DatabaseReference m_dbRooms;
     protected DatabaseReference m_dbRequest;
+    protected DatabaseReference m_dbMessage;
+
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,6 +76,9 @@ public abstract class BaseFragment extends Fragment
         m_dbRequest = mFirebaseDatabaseReference.child(
                 res.getString(R.string.tbl_Request));
 
+        m_dbMessage = mFirebaseDatabaseReference.child(
+                        res.getString(R.string.tbl_Message));
+
     }
 
     @Nullable
@@ -87,10 +102,14 @@ public abstract class BaseFragment extends Fragment
         super.onDetach();
     }
 
+
+
     @Override
     public void onValidationSucceeded() {
 
     }
+
+
 
     @Override
     public void onValidationFailed(List<ValidationError> errors) {
