@@ -238,7 +238,7 @@ public class RequestListFragment extends BaseFragment {
         mListener = null;
     }
 
-    private static class RequestViewHolder extends RecyclerView.ViewHolder {
+    public static class RequestViewHolder extends RecyclerView.ViewHolder {
         public TextView langToLangTextView;
         public ImageView modeImageView;
         public TextView userTextView;
