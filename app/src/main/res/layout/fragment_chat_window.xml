@@ -23,18 +23,18 @@
         android:layout_alignParentStart="true"
         android:orientation="horizontal">
 
-        <ImageView
+        <ImageButton
             android:id="@+id/addMessageImageView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             ads:srcCompat="@drawable/ic_menu_gallery"/>
 
-        <ImageView
+        <ImageButton
                     android:id="@+id/voiceMessageImageView"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     ads:srcCompat="@android:drawable/presence_audio_online"/>
-        <ImageView
+        <ImageButton
                     android:id="@+id/imageMessageImageView"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"

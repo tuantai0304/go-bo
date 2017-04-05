@@ -3,6 +3,9 @@ package com.etranslate.pilot.fragments;
 
 import android.content.Intent;
 import android.hardware.Camera;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,27 +19,34 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Message;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.mobsandgeeks.saripaar.annotation.Url;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -54,6 +64,7 @@ public class ChatUIFragment extends BaseFragment {
     public static final String ARG_ROOMID = "roomId";
     public static final String ARG_PARAM2 = "param2";
     private static final int CAPTURE_IMAGE = 3;
+    private static final int CAPTURE_AUDIO = 4;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -65,9 +76,9 @@ public class ChatUIFragment extends BaseFragment {
     private LinearLayoutManager mLinearLayoutManager;
     private ProgressBar mProgressBar;
     private EditText mMessageEditText;
-    private ImageView mAddMessageImageView;
-    private ImageView mVoiceMessageImageView;
-    private ImageView mImageMessageImageView;
+    private ImageButton mAddMessageImageView;
+    private ImageButton mVoiceMessageImageView;
+    private ImageButton mImageMessageImageView;
 
     /* Firebase elements */
     private FirebaseRecyclerAdapter<Message, MessageViewHolder>
@@ -78,6 +89,12 @@ public class ChatUIFragment extends BaseFragment {
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";
 
     String roomId;
+
+    /* For record audio */
+    private MediaRecorder mRecorder;
+    private static final String LOG_TAG = "AudioRecordTest";
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+//    private static File mFileName;
 
     public ChatUIFragment() {
         // Required empty public constructor
@@ -110,6 +127,8 @@ public class ChatUIFragment extends BaseFragment {
             mParam1 = getArguments().getString(ARG_ROOMID);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
     }
 
     @Override
@@ -138,41 +157,53 @@ public class ChatUIFragment extends BaseFragment {
                 m_dbMessage.child(roomId)) {
 
             @Override
-            protected void populateViewHolder(final MessageViewHolder viewHolder, Message friendlyMessage, int position) {
+            protected void populateViewHolder(final MessageViewHolder viewHolder, final Message friendlyMessage, int position) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 if (friendlyMessage.getContent() != null) {
                     viewHolder.messageTextView.setText(friendlyMessage.getContent());
                     viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
                     viewHolder.messageImageView.setVisibility(ImageView.GONE);
                 } else {
-                    String imageUrl = friendlyMessage.getImageUrl();
-                    if (imageUrl.startsWith("gs://")) {
-                        StorageReference storageReference = FirebaseStorage.getInstance()
-                                .getReferenceFromUrl(imageUrl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(
-                                new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            String downloadUrl = task.getResult().toString();
-                                            Glide.with(viewHolder.messageImageView.getContext())
-                                                    .load(downloadUrl)
-                                                    .into(viewHolder.messageImageView);
-                                        } else {
-                                            Log.w(TAG, "Getting download url was not successful.",
-                                                    task.getException());
-                                        }
-                                    }
-                                });
-                    } else {
-                        Glide.with(viewHolder.messageImageView.getContext())
-                                .load(friendlyMessage.getImageUrl())
-                                .into(viewHolder.messageImageView);
-                    }
-                    viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
-                    viewHolder.messageTextView.setVisibility(TextView.GONE);
-                }
+                        /* Image or Audio message*/
+                        String imageUrl = friendlyMessage.getImageUrl();
+                        if (imageUrl.startsWith("gs://")) {
+                            StorageReference storageReference = FirebaseStorage.getInstance()
+                                    .getReferenceFromUrl(imageUrl);
+                            storageReference.getDownloadUrl().addOnCompleteListener(
+                                    new OnCompleteListener<Uri>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Uri> task) {
+                                            if (task.isSuccessful()) {
+                                                String downloadUrl = task.getResult().toString();
+                                                if (friendlyMessage.getType().equals("media")) {
+                                                    Glide.with(viewHolder.messageImageView.getContext())
+                                                            .load(downloadUrl)
+                                                            .into(viewHolder.messageImageView);
+                                                    Log.i(TAG, "onComplete: Image message");
+                                                } else {
+                                                    /* Audio type */
+                                                    playMedia(downloadUrl);
+                                                    Log.i(TAG, "onComplete: Play video");
+                                                }
 
+                                            } else {
+                                                Log.w(TAG, "Getting download url was not successful.",
+                                                        task.getException());
+                                            }
+                                        }
+                                    });
+                        } else {
+                            Glide.with(viewHolder.messageImageView.getContext())
+                                    .load(friendlyMessage.getImageUrl())
+                                    .into(viewHolder.messageImageView);
+                        }
+                        viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
+                        viewHolder.messageTextView.setVisibility(TextView.GONE);
+                    }
+//                    else if (friendlyMessage.getType().equals("audio")) {
+//                        playMedia(friendlyMessage.getImageUrl());
+//                    }
+//                }
 
                 viewHolder.messengerTextView.setText(friendlyMessage.getName());
                 if (friendlyMessage.getPhotoUrl() == null) {
@@ -246,7 +277,7 @@ public class ChatUIFragment extends BaseFragment {
             }
         });
 
-        mAddMessageImageView = (ImageView) v.findViewById(R.id.addMessageImageView);
+        mAddMessageImageView = (ImageButton) v.findViewById(R.id.addMessageImageView);
         mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -258,30 +289,104 @@ public class ChatUIFragment extends BaseFragment {
             }
         });
 
-//        final File[] img = new File[1];
-
-        mImageMessageImageView = (ImageView) v.findViewById(R.id.imageMessageImageView);
+        mImageMessageImageView = (ImageButton) v.findViewById(R.id.imageMessageImageView);
         mImageMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Select image for image message on click.
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                img =
-
                 Uri uri = Uri.fromFile(img);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
                 intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-//                intent.addCategory(Intent.CATEGORY_OPENABLE);
-//                intent.setType("image/*");
                 startActivityForResult(intent, CAPTURE_IMAGE);
             }
         });
 
+        mVoiceMessageImageView = (ImageButton) v.findViewById(R.id.voiceMessageImageView);
+        mVoiceMessageImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    startRecording();
+                    Toast.makeText(getActivity(), "Recording.....", Toast.LENGTH_SHORT).show();
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    Toast.makeText(getActivity(), "Record stopped", Toast.LENGTH_SHORT).show();
+                    stopRecording();
+                    
+                }
+
+                return false;
+            }
+        });
+
+        // Record to the external cache directory for visibility
+        mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
+        mFileName += "/audiorecordtest.3gp";
+
+//        mVoiceMessageImageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
+//                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mFileName));
+//                startActivityForResult(intent, CAPTURE_AUDIO);
+//            }
+//        });
+
         return v;
     }
 
+    private void startRecording() {
+        mRecorder = new MediaRecorder();
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFile(mFileName);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+        try {
+            mRecorder.prepare();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+
+        mRecorder.start();
+    }
+
+    private void stopRecording() {
+        Log.i(TAG, "stopRecording: STOOOOP");
+        mRecorder.stop();
+        mRecorder.release();
+        mRecorder = null;
+
+        addNewVoiceMessage(Uri.fromFile(new File(mFileName)));
+//        playMedia(Uri.parse(mFileName));
+    }
+
+
+    private void playMedia(String url) {
+//        String url = "http://r1.hot.c68.vdc.nixcdn.com/64641f9d542d4738004dc796f306c659/58e481e3/NhacCuaTui931/IDontBelieveInYou-NooPhuocThinhBasick-4659471.mp3?t=1491372029421";
+
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mediaPlayer.setDataSource(url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mediaPlayer.start();
+
+    }
+
+//    final File mFileName = new File(Environment
+//            .getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testAudio.mp3");
+
+    private static String mFileName = null;
     final File img = new File(Environment
-            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "test.jpg");;
+            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "test.jpg");
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -316,6 +421,77 @@ public class ChatUIFragment extends BaseFragment {
 //
             }
         }
+
+//        if (requestCode == CAPTURE_AUDIO) {
+//                    if (resultCode == RESULT_OK) {
+//
+//                        final Uri uri = Uri.fromFile(new File(mFileName));
+//                        addNewVoiceMessage(uri);
+//                        playMedia(uri);
+//        //
+//                    }
+//                }
+
+
+    }
+
+    private void addNewVoiceMessage(final Uri uri) {
+        Message tempMessage = new Message(LOADING_IMAGE_URL, mFirebaseUser.getUid());
+        m_dbMessage.child(roomId).push()
+                .setValue(tempMessage, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError databaseError,
+                                           DatabaseReference databaseReference) {
+                        if (databaseError == null) {
+                            String key = databaseReference.getKey();
+                            StorageReference storageReference =
+                                    FirebaseStorage.getInstance()
+                                            .getReference()
+                                            .child(roomId)
+                                            .child(uri.getLastPathSegment());
+
+                            putAudioInStorage(storageReference, uri, key);
+                        } else {
+                            Log.w(TAG, "Unable to write message to database.",
+                                    databaseError.toException());
+                        }
+                    }
+                });
+    }
+
+    private void putAudioInStorage(StorageReference storageReference, Uri uri, final String key) {
+        storageReference.putFile(uri).addOnCompleteListener(getActivity(),
+                new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            Message friendlyMessage =
+                                    new Message(null, "audio", task.getResult().getMetadata().getDownloadUrl()
+                                            .toString(), null, roomId,
+                                            mFirebaseUser.getUid(),
+                                            mFirebaseUser.getDisplayName());
+                            m_dbMessage.child(roomId).child(key)
+                                    .setValue(friendlyMessage);
+                        } else {
+                            Log.w("Firebase", "Audio upload task was not successful.",
+                                    task.getException());
+                        }
+                    }
+                });
+
+//        storageReference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//            @Override
+//            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                Toast.makeText(getContext(), "Success uploaded", Toast.LENGTH_SHORT).show();
+//                Message friendlyMessage =
+//                        new Message(null, "audio", taskSnapshot.getDownloadUrl()
+//                                .toString(), null, roomId,
+//                                mFirebaseUser.getUid(),
+//                                mFirebaseUser.getDisplayName());
+//                m_dbMessage.child(roomId).child(key)
+//                        .setValue(friendlyMessage);
+//            }
+//        });
     }
 
     private void addNewImageMessage(final Uri uri) {
