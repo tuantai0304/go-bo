@@ -1,7 +1,9 @@
 package com.etranslate.pilot.fragments;
 
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -50,8 +52,15 @@ import java.io.IOException;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.Manifest.permission.CAMERA;
+import static android.Manifest.permission.CAPTURE_AUDIO_OUTPUT;
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
+import static android.content.Context.AUDIO_SERVICE;
+import static android.content.Context.CAMERA_SERVICE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -121,6 +130,11 @@ public class ChatUIFragment extends BaseFragment {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -129,6 +143,19 @@ public class ChatUIFragment extends BaseFragment {
         }
 
 
+        /* TODO: Request permission, if not granted, do something else */
+        /* Request nessessary permission */
+        if(ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA)
+            + ContextCompat.checkSelfPermission(getContext(), RECORD_AUDIO)
+            + ContextCompat.checkSelfPermission(getContext(), WRITE_EXTERNAL_STORAGE)
+            + ContextCompat.checkSelfPermission(getContext(), READ_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{CAMERA
+                        , RECORD_AUDIO
+                        , WRITE_EXTERNAL_STORAGE
+                        , READ_EXTERNAL_STORAGE}, 123 );
+            return;
+        }
     }
 
     @Override
@@ -180,10 +207,11 @@ public class ChatUIFragment extends BaseFragment {
                                                             .load(downloadUrl)
                                                             .into(viewHolder.messageImageView);
                                                     Log.i(TAG, "onComplete: Image message");
+                                                    Toast.makeText(getContext(), "On complete image", Toast.LENGTH_SHORT).show();
                                                 } else {
                                                     /* Audio type */
-                                                    playMedia(downloadUrl);
-                                                    Log.i(TAG, "onComplete: Play video");
+//                                                    playMedia(downloadUrl);
+//                                                    Log.i("Audio file:", "onComplete: Play video" + downloadUrl);
                                                 }
 
                                             } else {
@@ -193,10 +221,21 @@ public class ChatUIFragment extends BaseFragment {
                                         }
                                     });
                         } else {
-                            Glide.with(viewHolder.messageImageView.getContext())
-                                    .load(friendlyMessage.getImageUrl())
-                                    .into(viewHolder.messageImageView);
-                        }
+//                            if (friendlyMessage.getType().equals("media")) {
+                                Glide.with(viewHolder.messageImageView.getContext())
+                                        .load(friendlyMessage.getImageUrl())
+                                        .into(viewHolder.messageImageView);
+                            playMedia(friendlyMessage.getImageUrl());
+                                Toast.makeText(getContext(), "Image type", Toast.LENGTH_SHORT).show();
+//                            } else {
+                                /* Audio type */
+//                                Toast.makeText(getContext(), "Audio type", Toast.LENGTH_SHORT).show();
+//                                playMedia(friendlyMessage.getImageUrl());
+//                                Log.i("Audio file:", "onComplete: Play video" + friendlyMessage.getImageUrl());
+
+                            }
+
+//                        }
                         viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
                         viewHolder.messageTextView.setVisibility(TextView.GONE);
                     }
@@ -322,15 +361,6 @@ public class ChatUIFragment extends BaseFragment {
         // Record to the external cache directory for visibility
         mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
         mFileName += "/audiorecordtest.3gp";
-
-//        mVoiceMessageImageView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
-//                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mFileName));
-//                startActivityForResult(intent, CAPTURE_AUDIO);
-//            }
-//        });
 
         return v;
     }
@@ -478,20 +508,6 @@ public class ChatUIFragment extends BaseFragment {
                         }
                     }
                 });
-
-//        storageReference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//            @Override
-//            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                Toast.makeText(getContext(), "Success uploaded", Toast.LENGTH_SHORT).show();
-//                Message friendlyMessage =
-//                        new Message(null, "audio", taskSnapshot.getDownloadUrl()
-//                                .toString(), null, roomId,
-//                                mFirebaseUser.getUid(),
-//                                mFirebaseUser.getDisplayName());
-//                m_dbMessage.child(roomId).child(key)
-//                        .setValue(friendlyMessage);
-//            }
-//        });
     }
 
     private void addNewImageMessage(final Uri uri) {

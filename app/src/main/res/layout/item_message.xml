@@ -14,14 +14,24 @@
             android:id="@+id/messengerImageView"
             android:layout_width="36dp"
             android:layout_height="36dp"
+            android:layout_gravity="top"
             android:src="@drawable/ic_account_circle_black_36dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
+            android:layout_marginBottom="10dp"
             android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:background="@drawable/round_coner1">
+
+
+            <include
+                layout="@layout/item_voice"
+                android:visibility="gone"
+                android:id="@+id/messageAudioView" />
 
             <TextView
                 android:id="@+id/messageTextView"
