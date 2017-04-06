@@ -2,6 +2,7 @@ package com.etranslate.pilot.fragments;
 
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -11,7 +12,9 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -29,6 +32,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +45,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -49,6 +54,8 @@ import com.mobsandgeeks.saripaar.annotation.Url;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -61,6 +68,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
 import static android.content.Context.AUDIO_SERVICE;
 import static android.content.Context.CAMERA_SERVICE;
+import static com.google.firebase.database.ServerValue.TIMESTAMP;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -103,6 +111,8 @@ public class ChatUIFragment extends BaseFragment {
     private MediaRecorder mRecorder;
     private static final String LOG_TAG = "AudioRecordTest";
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    private int currentPos;
+    private Handler handler = new Handler();
 //    private static File mFileName;
 
     public ChatUIFragment() {
@@ -158,6 +168,13 @@ public class ChatUIFragment extends BaseFragment {
         }
     }
 
+    boolean isPlaying = false;
+    MediaPlayer mediaPlayer = new MediaPlayer();
+    Message currentMessage;
+    MessageViewHolder currentViewHolder;
+    int audio_position;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -176,73 +193,114 @@ public class ChatUIFragment extends BaseFragment {
         mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
 //        mMessageRecyclerView.setAdapter(mFirebaseAdapter);
 
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
         mFirebaseAdapter = new FirebaseRecyclerAdapter<Message,
                 MessageViewHolder>(
                 Message.class,
                 R.layout.item_message,
                 MessageViewHolder.class,
                 m_dbMessage.child(roomId)) {
-
             @Override
-            protected void populateViewHolder(final MessageViewHolder viewHolder, final Message friendlyMessage, int position) {
+            protected void populateViewHolder(final MessageViewHolder viewHolder, final Message friendlyMessage, final int position) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                if (friendlyMessage.getContent() != null) {
-                    viewHolder.messageTextView.setText(friendlyMessage.getContent());
-                    viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
-                    viewHolder.messageImageView.setVisibility(ImageView.GONE);
-                } else {
-                        /* Image or Audio message*/
-                        String imageUrl = friendlyMessage.getImageUrl();
-                        if (imageUrl.startsWith("gs://")) {
-                            StorageReference storageReference = FirebaseStorage.getInstance()
-                                    .getReferenceFromUrl(imageUrl);
-                            storageReference.getDownloadUrl().addOnCompleteListener(
-                                    new OnCompleteListener<Uri>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Uri> task) {
-                                            if (task.isSuccessful()) {
-                                                String downloadUrl = task.getResult().toString();
-                                                if (friendlyMessage.getType().equals("media")) {
-                                                    Glide.with(viewHolder.messageImageView.getContext())
-                                                            .load(downloadUrl)
-                                                            .into(viewHolder.messageImageView);
-                                                    Log.i(TAG, "onComplete: Image message");
-                                                    Toast.makeText(getContext(), "On complete image", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    /* Audio type */
-//                                                    playMedia(downloadUrl);
-//                                                    Log.i("Audio file:", "onComplete: Play video" + downloadUrl);
-                                                }
 
-                                            } else {
-                                                Log.w(TAG, "Getting download url was not successful.",
-                                                        task.getException());
-                                            }
-                                        }
-                                    });
-                        } else {
-//                            if (friendlyMessage.getType().equals("media")) {
-                                Glide.with(viewHolder.messageImageView.getContext())
-                                        .load(friendlyMessage.getImageUrl())
-                                        .into(viewHolder.messageImageView);
-                            playMedia(friendlyMessage.getImageUrl());
-                                Toast.makeText(getContext(), "Image type", Toast.LENGTH_SHORT).show();
-//                            } else {
-                                /* Audio type */
-//                                Toast.makeText(getContext(), "Audio type", Toast.LENGTH_SHORT).show();
-//                                playMedia(friendlyMessage.getImageUrl());
-//                                Log.i("Audio file:", "onComplete: Play video" + friendlyMessage.getImageUrl());
+                String messageType = friendlyMessage.getType();
+                if (messageType == null) {
+                    viewHolder.messageImageView.setVisibility(View.VISIBLE);
+                    viewHolder.messageTextView.setVisibility(View.GONE);
+                    viewHolder.messageVoice.setVisibility(View.GONE);
+                    Glide.with(getContext())
+                            .load(friendlyMessage.getImageUrl())
+                            .into(viewHolder.messageImageView);
+                }
 
-                            }
+                if (messageType != null) {
+                    switch (messageType) {
+                        case "text":
+                            viewHolder.messageTextView.setText(friendlyMessage.getContent());
+                            viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
+                            viewHolder.messageImageView.setVisibility(ImageView.GONE);
+                            viewHolder.messageVoice.setVisibility(View.GONE);
+                            break;
+                        case "audio":
 
-//                        }
-                        viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
-                        viewHolder.messageTextView.setVisibility(TextView.GONE);
+                            Toast.makeText(getContext(), "Audio type", Toast.LENGTH_SHORT).show();
+                            viewHolder.messageImageView.setVisibility(ImageView.GONE);
+                            viewHolder.messageTextView.setVisibility(TextView.GONE);
+                            viewHolder.messageVoice.setVisibility(View.VISIBLE);
+                            viewHolder.btnPlay.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    playMedia(friendlyMessage, viewHolder);
+                                    primarySeekBarProgressUpdater();
+                                }
+                            });
+//                            viewHolder.setMediaPlayer(mediaPlayer);
+//                            viewHolder.playMedia(friendlyMessage.getImageUrl());
+//                            final ImageButton btnPlay = viewHolder.btnPlay;
+
+//                            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                                @Override
+//                                public void onCompletion(MediaPlayer mp) {
+//                                    btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+//                                }
+//                            });
+
+//                            btnPlay.setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+////                                    boolean isPaused=false;
+////                                    mediaPlayer.release();
+////                                    try {
+////                                        mediaPlayer.setDataSource(friendlyMessage.getImageUrl());
+////                                        mediaPlayer.prepare();
+////                                    } catch (IOException e) {
+////                                        e.printStackTrace();
+////                                    }
+////                                    /* * what if pause?
+////                                    Not playing */
+////                                    if (!mediaPlayer.isPlaying()) {
+////                                        mediaPlayer.start();
+////                                        btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+////
+////                                        String duration = Integer.toString(mediaPlayer.getDuration());
+////                                        Toast.makeText(getContext(), duration, Toast.LENGTH_SHORT).show();
+////                                    } else {
+////                                        mediaPlayer.pause();
+////                                        Toast.makeText(getContext(), "Pause playing", Toast.LENGTH_SHORT).show();
+////                                        btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+////                                    }
+////                                    mediaPlayer.release();
+////                                    mediaPlayer = null;
+//                                    if (currentPos == position)
+//
+//                                    playMedia(friendlyMessage.getImageUrl(), viewHolder.btnPlay, viewHolder.seekBarVoice, position);
+
+//                                    mediaPlayer = new MediaPlayer();
+//                                    mediaPlayer.setDataSource(friendlyMessage.);
+//                                    Toast.makeText(getContext(), friendlyMessage.getImageUrl(), Toast.LENGTH_SHORT).show();
+//                                }
+//                            });
+
+                            break;
+                        case "media":
+                            Glide.with(viewHolder.messageImageView.getContext())
+                                    .load(friendlyMessage.getImageUrl())
+                                    .into(viewHolder.messageImageView);
+//                            playMedia(friendlyMessage.getImageUrl());
+                            Toast.makeText(getContext(), "Image type", Toast.LENGTH_SHORT).show();
+                            viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
+                            viewHolder.messageTextView.setVisibility(TextView.GONE);
+                            viewHolder.messageVoice.setVisibility(View.GONE);
+                            break;
                     }
-//                    else if (friendlyMessage.getType().equals("audio")) {
-//                        playMedia(friendlyMessage.getImageUrl());
-//                    }
-//                }
+                }
+
+
+
+                /* Poplulate Display name and Avartar*/
 
                 viewHolder.messengerTextView.setText(friendlyMessage.getName());
                 if (friendlyMessage.getPhotoUrl() == null) {
@@ -392,27 +450,69 @@ public class ChatUIFragment extends BaseFragment {
     }
 
 
-    private void playMedia(String url) {
-//        String url = "http://r1.hot.c68.vdc.nixcdn.com/64641f9d542d4738004dc796f306c659/58e481e3/NhacCuaTui931/IDontBelieveInYou-NooPhuocThinhBasick-4659471.mp3?t=1491372029421";
-
-        MediaPlayer mediaPlayer = new MediaPlayer();
+    private void playMedia(final Message message, MessageViewHolder viewHolder) {
+        /* How I know this is pause*/
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        try {
-            mediaPlayer.setDataSource(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mediaPlayer.start();
 
+        if (currentMessage == message) {
+            /* This message is in play */
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                currentViewHolder.btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+            } else {
+                mediaPlayer.start();
+                currentViewHolder.btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+            }
+        } else {
+            /*
+             * Change to new voice message
+             * Release current media player
+             * */
+            mediaPlayer.stop();
+            mediaPlayer.reset();
+            if (currentViewHolder != null) {
+                currentViewHolder.btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                currentViewHolder.seekBarVoice.setProgress(0);
+            }
+
+            currentViewHolder = viewHolder;
+            currentMessage = message;
+
+            /* Set new data source and play*/
+            try {
+                mediaPlayer.setDataSource(currentMessage.getImageUrl());
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            mediaPlayer.start();
+            currentViewHolder.btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mediaPlayer.seekTo(0);
+                    currentViewHolder.btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                }
+            });
+        }
     }
 
-//    final File mFileName = new File(Environment
-//            .getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testAudio.mp3");
+    /**
+     * Method which updates the SeekBar primary progress by current song playing position
+     */
+    private void primarySeekBarProgressUpdater() {
+        currentViewHolder.seekBarVoice.setProgress((int) (((float) mediaPlayer.getCurrentPosition() / mediaPlayer.getDuration()) * 100)); // This math construction give a percentage of "was playing"/"song length"
+        if (mediaPlayer.isPlaying()) {
+            Runnable notification = new Runnable() {
+                public void run() {
+                    primarySeekBarProgressUpdater();
+                }
+            };
+            handler.postDelayed(notification, 1000);
+        }
+    }
 
     private static String mFileName = null;
     final File img = new File(Environment
@@ -436,32 +536,13 @@ public class ChatUIFragment extends BaseFragment {
             }
         }
 
-//        Camera c = Camera.open();
-//        c.takePicture();
         if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
-//                Log.i(TAG, "onActivityResult: ");
-//                if (data != null) {
-//                    Bundle bundle = new Bundle();
-//                    bundle = data.getExtras();
-//                    Log.i(TAG, "onActivityResult: new Image" + bundle.get("data"));
-//                }
                 final Uri uri = Uri.fromFile(img);
                 addNewImageMessage(uri);
 //
             }
         }
-
-//        if (requestCode == CAPTURE_AUDIO) {
-//                    if (resultCode == RESULT_OK) {
-//
-//                        final Uri uri = Uri.fromFile(new File(mFileName));
-//                        addNewVoiceMessage(uri);
-//                        playMedia(uri);
-//        //
-//                    }
-//                }
-
 
     }
 
@@ -478,7 +559,7 @@ public class ChatUIFragment extends BaseFragment {
                                     FirebaseStorage.getInstance()
                                             .getReference()
                                             .child(roomId)
-                                            .child(uri.getLastPathSegment());
+                                            .child(uri.getLastPathSegment() + "_" + System.currentTimeMillis());
 
                             putAudioInStorage(storageReference, uri, key);
                         } else {
@@ -524,7 +605,7 @@ public class ChatUIFragment extends BaseFragment {
                                             .getReference()
 //                                                        .getReference(mFirebaseUser.getUid())
                                             .child(roomId)
-                                            .child(uri.getLastPathSegment());
+                                            .child(uri.getLastPathSegment() + "_" + System.currentTimeMillis());
 
                             putImageInStorage(storageReference, uri, key);
                         } else {
@@ -556,11 +637,18 @@ public class ChatUIFragment extends BaseFragment {
                 });
     }
 
+    /* Message view holder*/
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         public TextView messageTextView;
         public ImageView messageImageView;
+        public View messageVoice;
+        public ImageButton btnPlay;
+        public SeekBar seekBarVoice;
+
         public TextView messengerTextView;
         public CircleImageView messengerImageView;
+
+
 
         public MessageViewHolder(View v) {
             super(v);
@@ -568,7 +656,11 @@ public class ChatUIFragment extends BaseFragment {
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
             messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
+            messageVoice = itemView.findViewById(R.id.messageAudioView);
+            btnPlay = (ImageButton) messageVoice.findViewById(R.id.btnPlay);
+            seekBarVoice = (SeekBar) messageVoice.findViewById(R.id.seekBarVoice);
         }
+
     }
 
 
