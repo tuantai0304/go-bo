@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.etranslate.pilot.R;
 import com.etranslate.pilot.VideoConferenceActivity;
@@ -28,10 +29,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import de.hdodenhof.circleimageview.CircleImageView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * A fragment representing a list of Items.
@@ -39,16 +40,16 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class RequestListFragment extends BaseFragment {
+public class HistoryListFragment extends BaseFragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
+//    private OnListFragmentInteractionListener mListener;
 
-    private FirebaseRecyclerAdapter<Request, RequestViewHolder>
+    private FirebaseRecyclerAdapter<Request, HistoryViewHolder>
             mFirebaseAdapter;
 
 
@@ -56,13 +57,13 @@ public class RequestListFragment extends BaseFragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public RequestListFragment() {
+    public HistoryListFragment() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static RequestListFragment newInstance(int columnCount) {
-        RequestListFragment fragment = new RequestListFragment();
+    public static HistoryListFragment newInstance(int columnCount) {
+        HistoryListFragment fragment = new HistoryListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -84,7 +85,7 @@ public class RequestListFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_request_list, container, false);
+        final View view = inflater.inflate(R.layout.fragment_history_list, container, false);
 
 
         // Set the adapter
@@ -99,45 +100,68 @@ public class RequestListFragment extends BaseFragment {
             }
 
             mFirebaseAdapter = new FirebaseRecyclerAdapter<Request,
-                    RequestViewHolder>(
+                    HistoryViewHolder>(
                     Request.class,
-                    R.layout.item_request,
-                    RequestViewHolder.class,
-                    m_dbRequest.orderByChild("acceptStatus").equalTo("new")) {
+                    R.layout.item_history_request,
+                    HistoryViewHolder.class,
+                    m_dbRequest.orderByChild("userID").equalTo(mFirebaseUser.getUid())) {
                 @Override
-                protected void populateViewHolder(RequestViewHolder viewHolder, final Request request, final int position) {
+                protected void populateViewHolder(HistoryViewHolder viewHolder, final Request request, final int position) {
 
-//                    if (request.getAcceptStatus().equals("new")) {
-                        final String mode = request.getMode();
-                        switch (mode) {
-                            case MODE_CHAT:
-                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_chat));
-                                break;
-                            case MODE_VIDEO:
-                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_call));
-                                break;
-                            case MODE_IMAGE:
-                                viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_menu_report_image));
-                                break;
+                    final String mode = request.getMode();
+                    switch (mode) {
+                        case MODE_CHAT:
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_chat));
+                            break;
+                        case MODE_VIDEO:
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_call));
+                            break;
+                        case MODE_IMAGE:
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_menu_report_image));
+                            break;
 
-                        }
-                        viewHolder.langToLangTextView.setText(request.getSrcLang() + " to " + request.getTarLang());
+                    }
+                    viewHolder.langToLangTextView.setText(request.getSrcLang() + " to " + request.getTarLang());
 
-                        viewHolder.btnAccept.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                acceptRequest(getRef(position), mode);
-                            }
-                        });
-//                    }
+                    String translatorName = request.getTranslatorName();
+                    if (translatorName != null)
+                        viewHolder.userTextView.setText(translatorName);
+
+                    SimpleDateFormat sfd = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                    String date = sfd.format(new Date((Long) request.getTimestamp()));
+                    viewHolder.dateTextView.setText(date);
                 }
 
+                @Override
+                public HistoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                    HistoryViewHolder viewHolder = super.onCreateViewHolder(parent, viewType);
+                    viewHolder.setOnClickListener(new HistoryViewHolder.ClickListener() {
+                        @Override
+                        public void onItemClick(View view, int position) {
+                            Toast.makeText(getActivity(), "Item clicked at " + position, Toast.LENGTH_SHORT).show();
+
+                            Request request = getItem(position);
+                            String mode = request.getMode();
+
+                            switch (mode){
+                                case MODE_CHAT:
+                                    changeToChatFragment(request.getRoomId());
+                                    break;
+                            }
+                        }
+
+                        @Override
+                        public void onItemLongClick(View view, int position) {
+                            Toast.makeText(getActivity(), "Item long clicked at " + position, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return viewHolder;
+                }
 
 
             };
 
             mLinearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-//            RecyclerView mMessageRecyclerView;
 
             mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
                 @Override
@@ -164,76 +188,6 @@ public class RequestListFragment extends BaseFragment {
         return view;
     }
 
-    /* When translator accept a request
-    * create a new chat room
-    *
-    * */
-    private void acceptRequest(final DatabaseReference requestRef, final String mode) {
-        final String new_room_key = m_dbRooms.push().getKey();
-//        Request request;
-        requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                /*Get request info*/
-                Request request = dataSnapshot.getValue(Request.class);
-
-                /* Change the roomId field of the current requestRef */
-                requestRef.child("roomId").setValue(new_room_key);
-                Log.i("New room key", "changeToChatFragment: " + new_room_key);
-
-                /* Create new room */
-                Room room = new Room( request.getUserID(), mFirebaseUser.getUid() );
-                m_dbRooms.child(new_room_key).setValue(room)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                if (!mode.equals(MODE_VIDEO)) {
-                                    changeToChatFragment(new_room_key);
-                                }
-                                else {
-                                    changeToVideoConferenceFragment(new_room_key);
-                                }
-                                /* Change status of the request  */
-                                requestRef.child("acceptStatus").setValue("accepted");
-                                /* TODO set Firebase user JAVA object instead of doding this */
-                                requestRef.child("translatorUid").setValue(mFirebaseUser.getUid());
-                                requestRef.child("translatorName").setValue(mFirebaseUser.getDisplayName());
-                                requestRef.child("translatorEmail").setValue(mFirebaseUser.getEmail());
-                            }
-                        }
-                    });
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void changeToVideoConferenceFragment(String new_room_key) {
-//        Bundle bundle = new Bundle();
-//        bundle.putString(ChatUIFragment.ARG_ROOMID, new_room_key);
-//
-//        /* Change to chat UI screen */
-//        VideoConferenceFragment videoConferenceFragment = new VideoConferenceFragment();
-//
-//        videoConferenceFragment.setArguments(bundle);
-//
-//        FragmentManager fm = getActivity().getSupportFragmentManager();
-//        FragmentTransaction tx = fm.beginTransaction();
-//        tx.replace(R.id.content_main , videoConferenceFragment);
-//        tx.commit();
-
-        Intent intent = new Intent(getContext(), VideoConferenceActivity.class);
-        intent.putExtra(ARG_ROOMID, new_room_key);
-        startActivity(intent);
-//        startActivity(new Intent(getContext(), VideoConferenceActivity.class));
-    }
-
     private void changeToChatFragment(String new_room_key) {
 
         Bundle bundle = new Bundle();
@@ -246,40 +200,69 @@ public class RequestListFragment extends BaseFragment {
 
         FragmentManager fm = getActivity().getSupportFragmentManager();
         FragmentTransaction tx = fm.beginTransaction();
-        tx.replace(R.id.content_main , chatUIFragment);
+        tx.replace(R.id.content_main , chatUIFragment).addToBackStack(null);
         tx.commit();
     }
-
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
-        }
+//        if (context instanceof OnListFragmentInteractionListener) {
+//            mListener = (OnListFragmentInteractionListener) context;
+//        } else {
+//            throw new RuntimeException(context.toString()
+//                    + " must implement OnListFragmentInteractionListener");
+//        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+//        mListener = null;
     }
 
-    public static class RequestViewHolder extends RecyclerView.ViewHolder {
+    public static class HistoryViewHolder extends RecyclerView.ViewHolder {
         public TextView langToLangTextView;
         public ImageView modeImageView;
         public TextView userTextView;
-        public Button btnAccept;
+        public TextView dateTextView;
 
-        public RequestViewHolder(View v) {
+
+        public HistoryViewHolder(View v) {
             super(v);
             langToLangTextView = (TextView) itemView.findViewById(R.id.langToLangTextView);
             modeImageView = (ImageView) itemView.findViewById(R.id.modeImageView);
             userTextView = (TextView) itemView.findViewById(R.id.userTextView);
-            btnAccept = (Button) itemView.findViewById(R.id.btnAccept);
+            dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
+
+            //listener set on ENTIRE ROW, you may set on individual components within a row.
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mClickListener.onItemClick(v, getAdapterPosition());
+
+                }
+            });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    mClickListener.onItemLongClick(v, getAdapterPosition());
+                    return true;
+                }
+            });
+
+        }
+
+        private HistoryViewHolder.ClickListener mClickListener;
+
+        //Interface to send callbacks...
+        public interface ClickListener{
+            public void onItemClick(View view, int position);
+            public void onItemLongClick(View view, int position);
+        }
+
+        public void setOnClickListener(HistoryViewHolder.ClickListener clickListener){
+            mClickListener = clickListener;
         }
     }
 

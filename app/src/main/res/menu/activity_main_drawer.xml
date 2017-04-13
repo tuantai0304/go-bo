@@ -7,29 +7,29 @@
             android:icon="@drawable/ic_menu_camera"
             android:title="Create new request" />
         <item
-            android:id="@+id/nav_history"
+            android:id="@+id/nav_request_history"
             android:icon="@drawable/ic_menu_gallery"
             android:title="History" />
         <item
             android:id="@+id/nav_all_requests"
             android:icon="@drawable/ic_menu_gallery"
             android:title="View all requests" />
-        <item
-            android:id="@+id/nav_payment"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Payment" />
-        <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
+        <!--<item-->
+            <!--android:id="@+id/nav_payment"-->
+            <!--android:icon="@drawable/ic_menu_slideshow"-->
+            <!--android:title="Payment" />-->
+        <!--<item-->
+            <!--android:id="@+id/nav_manage"-->
+            <!--android:icon="@drawable/ic_menu_manage"-->
+            <!--android:title="Tools" />-->
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Setting">
         <menu>
             <item
-                android:id="@+id/nav_share"
+                android:id="@+id/nav_update_profile"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:title="Update Profile" />
             <item
                 android:id="@+id/nav_logout"
                 android:title="Log out" />

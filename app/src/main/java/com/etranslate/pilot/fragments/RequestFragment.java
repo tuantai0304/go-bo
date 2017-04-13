@@ -119,6 +119,8 @@ public class RequestFragment extends BaseFragment {
         String mode = spnModes.getSelectedItem().toString();
 
         Request req = new Request(srcLang, tarLang, mode, null, null, mFirebaseUser.getUid());
+//        req.setUser(mFirebaseUser);
+
         /* Add to database */
         final DatabaseReference new_request_ref = m_dbRequest.push();
         String key = new_request_ref.getKey();
@@ -170,7 +172,7 @@ public class RequestFragment extends BaseFragment {
                             chatUIFragment.setArguments(b);
                             FragmentManager fm = getActivity().getSupportFragmentManager();
                             FragmentTransaction tx = fm.beginTransaction();
-                            tx.replace(R.id.content_main , chatUIFragment);
+                            tx.replace(R.id.content_main , chatUIFragment).addToBackStack(null);
                             tx.commit();
                         } else {
                             Intent intent = new Intent(getContext(), VideoConferenceActivity.class);

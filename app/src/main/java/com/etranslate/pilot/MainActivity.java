@@ -3,22 +3,25 @@ package com.etranslate.pilot;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.etranslate.pilot.dummy.DummyContent;
 import com.etranslate.pilot.fragments.ChatUIFragment;
+import com.etranslate.pilot.fragments.HistoryListFragment;
 import com.etranslate.pilot.fragments.RequestFragment;
 import com.etranslate.pilot.fragments.RequestListFragment;
 import com.etranslate.pilot.user.UserLoginActivity;
@@ -26,13 +29,13 @@ import com.etranslate.pilot.user.UserLoginActivity;
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
                     RequestFragment.OnFragmentInteractionListener,
-                    RequestListFragment.OnListFragmentInteractionListener,
-                    VideoConferenceFragment.OnFragmentInteractionListener
+                    RequestListFragment.OnListFragmentInteractionListener
 {
 
 
     /* Static variable */
-
+    FragmentManager supportFragmentManager;
+    FragmentTransaction fragmentTransaction;
 
 //    View content_main;
 
@@ -40,36 +43,6 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        content_main = findViewById(R.id.content_main);
-
-        /*
-        * For test
-        * */
-//        mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
-//        mFileName += "/audiorecordtest.3gp";
-//
-//        btnRecord = (Button) findViewById(R.id.btnAudio);
-//        btnRecord.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//                    startRecording();
-//                    Toast.makeText(MainActivity.this, "Start recording", Toast.LENGTH_SHORT).show();
-//                } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//                    stopRecording();
-//                    Toast.makeText(MainActivity.this, "Stop recording", Toast.LENGTH_SHORT).show();
-//                }
-//
-//                return false;
-//            }
-//        });
-//
-//        tvRecord = (TextView) findViewById(R.id.tvRecord);
-//        tvRecord.setText("Fort test");
-        /*
-        *
-        * */
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -80,14 +53,25 @@ public class MainActivity extends BaseActivity
             finish();
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        /* Init Fragment manager */
+        supportFragmentManager = getSupportFragmentManager();
+
+        /* Make request service as default screen */
+        fragmentTransaction = supportFragmentManager.beginTransaction();
+        Fragment requestFragment = new RequestFragment();
+        fragmentTransaction.add(R.id.content_main, requestFragment);
+        fragmentTransaction.commit();
+
+
+
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -97,6 +81,38 @@ public class MainActivity extends BaseActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        setDrawerNavHeaderInformation(navigationView);
+
+
+    }
+
+    /**
+     * Set User information for Nav Header
+     *
+     * */
+
+    private void setDrawerNavHeaderInformation(NavigationView navigationView) {
+    /* Set header for Nav Drawer */
+        Uri photoUrl = mFirebaseUser.getPhotoUrl();
+        String displayName = mFirebaseUser.getDisplayName();
+        String email = mFirebaseUser.getEmail();
+
+        View header = navigationView.getHeaderView(0);
+        ImageView iv_avatar = (ImageView) header.findViewById(R.id.nav_header_avatar_imageview);
+        TextView tv_name = (TextView) header.findViewById(R.id.nav_header_displayname_textview);
+        TextView tv_email = (TextView) header.findViewById(R.id.nav_header_email_textview);
+
+
+        if (photoUrl != null)
+            Glide.with(getApplicationContext())
+                    .load(photoUrl)
+                    .into(iv_avatar);
+
+        if (displayName != null)
+            tv_name.setText(displayName);
+
+        if (email != null)
+            tv_email.setText(email);
     }
 
     @Override
@@ -105,8 +121,16 @@ public class MainActivity extends BaseActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            if (supportFragmentManager.getBackStackEntryCount() > 0) {
+                Log.i("MainActivity", "popping backstack");
+                supportFragmentManager.popBackStack();
+            } else {
+                Log.i("MainActivity", "nothing on backstack, calling super");
+                super.onBackPressed();
+            }
         }
+
+
     }
 
     @Override
@@ -137,41 +161,37 @@ public class MainActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-
 //        android.app.FragmentManager app_Fragment_Manager = getFragmentManager();
 //        android.app.FragmentTransaction app_tx = app_Fragment_Manager.beginTransaction();
 //        Fragment fragment = new Fragment();
+        fragmentTransaction = supportFragmentManager.beginTransaction();
 
-        if (id == R.id.nav_request) {
-            // Handle the camera action
-            /* Start LoginActivity if user not login */
-            Fragment fragment = new RequestFragment();
-            transaction.replace(R.id.content_main, fragment);
-            transaction.commit();
+        Fragment fragment;
 
-        } else if (id == R.id.nav_all_requests) {
-            Fragment fragment = new RequestListFragment();
-            transaction.replace(R.id.content_main, fragment);
-            transaction.commit();
+        switch (id) {
+            case R.id.nav_request:
+                fragment = new RequestFragment();
+                fragmentTransaction.replace(R.id.content_main, fragment).addToBackStack(null);
+                fragmentTransaction.commit();
+                break;
 
-        } else if (id == R.id.nav_share) {
-            Bundle bundle = new Bundle();
-            String key = "-KgrP_5NT0MZ5GeW3VFT";
-            bundle.putString(ChatUIFragment.ARG_ROOMID, key);
+            case R.id.nav_request_history:
+                fragment = new HistoryListFragment();
+                fragmentTransaction.replace(R.id.content_main, fragment).addToBackStack(null);
+                fragmentTransaction.commit();
+                break;
 
-            Fragment fragment = new ChatUIFragment();
-            fragment.setArguments(bundle);
-            transaction.replace(R.id.content_main, fragment);
-            transaction.commit();
+            case R.id.nav_all_requests:
+                fragment = new RequestListFragment();
+                fragmentTransaction.replace(R.id.content_main, fragment).addToBackStack(null);
+                fragmentTransaction.commit();
+                break;
 
-        } else if (id == R.id.nav_logout) {
-            mFirebaseAuth.signOut();
-            startActivity(new Intent(getApplicationContext(), UserLoginActivity.class));
+            case R.id.nav_logout:
+                mFirebaseAuth.signOut();
+                startActivity(new Intent(getApplicationContext(), UserLoginActivity.class));
+                break;
         }
-
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -187,44 +207,6 @@ public class MainActivity extends BaseActivity
     public void onListFragmentInteraction(DummyContent.DummyItem item) {
 
     }
-
-
-
-    /*
-    * For testing audio capture
-    *
-    * */
-/* For record audio */
-//    private MediaRecorder mRecorder;
-//    private static final String LOG_TAG = "AudioRecordTest";
-//    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
-//    private String mFileName;
-//
-//    Button btnRecord;
-//    TextView tvRecord;
-//
-//    private void startRecording() {
-//        mRecorder = new MediaRecorder();
-//        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-//        mRecorder.setOutputFile(mFileName);
-//        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-//
-//        try {
-//            mRecorder.prepare();
-//        } catch (IOException e) {
-//            Log.e(LOG_TAG, "prepare() failed");
-//        }
-//
-//        mRecorder.start();
-//    }
-//
-//    private void stopRecording() {
-//        Log.i(TAG, "stopRecording: STOOOOP");
-//        mRecorder.stop();
-//        mRecorder.release();
-//        mRecorder = null;
-//    }
 
 
 

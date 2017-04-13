@@ -659,7 +659,4 @@ public class ChatUIFragment extends BaseFragment {
         }
 
     }
-
-
-
 }

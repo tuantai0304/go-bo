@@ -44,8 +44,12 @@ public class Request {
 
     private Object timestamp;
 
-    private FirebaseUser user;
-    private FirebaseUser translator;
+//    private FirebaseUser user;
+//    private FirebaseUser translator;
+
+    private String translatorName;
+    private String translatorEmail;
+    private String translatorUid;
 
 
     public Object getTimestamp() {
@@ -64,9 +68,9 @@ public class Request {
         this.srcLang = srcLang;
         this.tarLang = tarLang;
         this.mode = mode;
-        this.user = user;
+//        this.user = user;
         this.acceptStatus = "new";
-        this.translator = translator;
+//        this.translator = translator;
         setID(Id);
         this.timestamp = ServerValue.TIMESTAMP;
     }
@@ -75,9 +79,9 @@ public class Request {
         this.srcLang = srcLang;
         this.tarLang = tarLang;
         this.mode = mode;
-        this.user = user;
+//        this.user = user;
         this.acceptStatus = "new";
-        this.translator = translator;
+//        this.translator = translator;
         this.timestamp = ServerValue.TIMESTAMP;
         setUserID(userId);
     }
@@ -120,29 +124,52 @@ public class Request {
         this.acceptStatus = acceptStatus;
     }
 
-    @Exclude
-    public FirebaseUser getUser() {
-        return user;
-    }
-
-
-    public void setUser(FirebaseUser user) {
-        this.user = user;
-    }
-
-    @Exclude
-    public FirebaseUser getTranslator() {
-        return translator;
-    }
-
-    public void setTranslator(FirebaseUser translator) {
-        this.translator = translator;
-        if (translator != null) {
-            acceptStatus = "accepted";
-        }
-    }
+//    @Exclude
+//    public FirebaseUser getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(FirebaseUser user) {
+//        this.user = user;
+//    }
+//
+//    @Exclude
+//    public FirebaseUser getTranslator() {
+//        return translator;
+//    }
+//
+//    public void setTranslator(FirebaseUser translator) {
+//        this.translator = translator;
+//        if (translator != null) {
+//            acceptStatus = "accepted";
+//        }
+//    }
 
     public String getID() {
         return ID;
+    }
+
+    public String getTranslatorName() {
+        return translatorName;
+    }
+
+    public void setTranslatorName(String translatorName) {
+        this.translatorName = translatorName;
+    }
+
+    public String getTranslatorEmail() {
+        return translatorEmail;
+    }
+
+    public void setTranslatorEmail(String translatorEmail) {
+        this.translatorEmail = translatorEmail;
+    }
+
+    public String getTranslatorUid() {
+        return translatorUid;
+    }
+
+    public void setTranslatorUid(String translatorUid) {
+        this.translatorUid = translatorUid;
     }
 }
