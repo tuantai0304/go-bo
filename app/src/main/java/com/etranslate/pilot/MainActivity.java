@@ -26,8 +26,7 @@ import com.etranslate.pilot.user.UserLoginActivity;
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
                     RequestFragment.OnFragmentInteractionListener,
-                    RequestListFragment.OnListFragmentInteractionListener,
-                    VideoConferenceFragment.OnFragmentInteractionListener
+                    RequestListFragment.OnListFragmentInteractionListener
 {
 
 
