@@ -1,6 +1,7 @@
 package com.etranslate.pilot.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
@@ -17,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.etranslate.pilot.R;
+import com.etranslate.pilot.VideoConferenceActivity;
 import com.etranslate.pilot.dto.Request;
 import com.etranslate.pilot.dto.Room;
 import com.etranslate.pilot.dummy.DummyContent.DummyItem;
@@ -41,12 +43,14 @@ public class RequestListFragment extends BaseFragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
+
     // TODO: Customize parameters
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
 
     private FirebaseRecyclerAdapter<Request, RequestViewHolder>
             mFirebaseAdapter;
+
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -104,15 +108,15 @@ public class RequestListFragment extends BaseFragment {
                 protected void populateViewHolder(RequestViewHolder viewHolder, final Request request, final int position) {
 
 //                    if (request.getAcceptStatus().equals("new")) {
-                        String mode = request.getMode();
+                        final String mode = request.getMode();
                         switch (mode) {
-                            case "Real time chat":
+                            case MODE_CHAT:
                                 viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_chat));
                                 break;
-                            case "Video Conference":
+                            case MODE_VIDEO:
                                 viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_call));
                                 break;
-                            case "Image":
+                            case MODE_IMAGE:
                                 viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_menu_report_image));
                                 break;
 
@@ -122,7 +126,7 @@ public class RequestListFragment extends BaseFragment {
                         viewHolder.btnAccept.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                acceptRequest(getRef(position));
+                                acceptRequest(getRef(position), mode);
                             }
                         });
 //                    }
@@ -164,10 +168,8 @@ public class RequestListFragment extends BaseFragment {
     * create a new chat room
     *
     * */
-    private void acceptRequest(final DatabaseReference requestRef) {
+    private void acceptRequest(final DatabaseReference requestRef, final String mode) {
         final String new_room_key = m_dbRooms.push().getKey();
-//        final String requestID = requestRef.getKey();
-//        Log.i("New room key", "changeToChatFragment: " + new_room_key);
 //        Request request;
         requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -187,7 +189,12 @@ public class RequestListFragment extends BaseFragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                changeToChatFragment(new_room_key);
+                                if (!mode.equals(MODE_VIDEO)) {
+                                    changeToChatFragment(new_room_key);
+                                }
+                                else {
+                                    changeToVideoConferenceFragment(new_room_key);
+                                }
                                 /* Change status of the request  */
                                 requestRef.child("acceptStatus").setValue("accepted");
                             }
@@ -201,6 +208,26 @@ public class RequestListFragment extends BaseFragment {
 
             }
         });
+    }
+
+    private void changeToVideoConferenceFragment(String new_room_key) {
+//        Bundle bundle = new Bundle();
+//        bundle.putString(ChatUIFragment.ARG_ROOMID, new_room_key);
+//
+//        /* Change to chat UI screen */
+//        VideoConferenceFragment videoConferenceFragment = new VideoConferenceFragment();
+//
+//        videoConferenceFragment.setArguments(bundle);
+//
+//        FragmentManager fm = getActivity().getSupportFragmentManager();
+//        FragmentTransaction tx = fm.beginTransaction();
+//        tx.replace(R.id.content_main , videoConferenceFragment);
+//        tx.commit();
+
+        Intent intent = new Intent(getContext(), VideoConferenceActivity.class);
+        intent.putExtra(ARG_ROOMID, new_room_key);
+        startActivity(intent);
+//        startActivity(new Intent(getContext(), VideoConferenceActivity.class));
     }
 
     private void changeToChatFragment(String new_room_key) {
@@ -217,7 +244,6 @@ public class RequestListFragment extends BaseFragment {
         FragmentTransaction tx = fm.beginTransaction();
         tx.replace(R.id.content_main , chatUIFragment);
         tx.commit();
-
     }
 
 

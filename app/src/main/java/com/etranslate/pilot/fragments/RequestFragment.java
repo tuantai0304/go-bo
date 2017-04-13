@@ -3,6 +3,7 @@ package com.etranslate.pilot.fragments;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.etranslate.pilot.R;
+import com.etranslate.pilot.VideoConferenceActivity;
 import com.etranslate.pilot.dto.Request;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -152,6 +154,7 @@ public class RequestFragment extends BaseFragment {
                 Request req = dataSnapshot.getValue(Request.class);
                 if (req != null) {
                     String status = req.getAcceptStatus();
+                    String mode = req.getMode();
                     if (status.equals("accepted")) {
                         /* TODO: Change to chat UI changing here*/
                         waitingTranslatorDialog.dismiss();
@@ -159,15 +162,23 @@ public class RequestFragment extends BaseFragment {
                         /* Get roomKey */
                         req.getRoomId();
                         Bundle b = new Bundle();
-                        b.putString(ChatUIFragment.ARG_ROOMID, req.getRoomId());
+                        b.putString(ARG_ROOMID, req.getRoomId());
 
-                        /* Change to chat UI screen */
-                        ChatUIFragment chatUIFragment = new ChatUIFragment();
-                        chatUIFragment.setArguments(b);
-                        FragmentManager fm = getActivity().getSupportFragmentManager();
-                        FragmentTransaction tx = fm.beginTransaction();
-                        tx.replace(R.id.content_main , chatUIFragment);
-                        tx.commit();
+                        if (!mode.equals(MODE_VIDEO)) {
+                            /* Change to chat UI screen */
+                            ChatUIFragment chatUIFragment = new ChatUIFragment();
+                            chatUIFragment.setArguments(b);
+                            FragmentManager fm = getActivity().getSupportFragmentManager();
+                            FragmentTransaction tx = fm.beginTransaction();
+                            tx.replace(R.id.content_main , chatUIFragment);
+                            tx.commit();
+                        } else {
+                            Intent intent = new Intent(getContext(), VideoConferenceActivity.class);
+                            intent.putExtra(ARG_ROOMID, req.getRoomId());
+                            intent.putExtra(ARG_CREATE_OFFER, true);
+                            startActivity(intent);
+                        }
+
                     }
                     Log.i("onDataChange", "onDataChange: " + req.getAcceptStatus());
                     Log.i("RoomID", "onDataChange: " + req.getRoomId());

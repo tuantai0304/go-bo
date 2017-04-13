@@ -78,7 +78,7 @@ import static com.google.firebase.database.ServerValue.TIMESTAMP;
 public class ChatUIFragment extends BaseFragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    public static final String ARG_ROOMID = "roomId";
+
     public static final String ARG_PARAM2 = "param2";
     private static final int CAPTURE_IMAGE = 3;
     private static final int CAPTURE_AUDIO = 4;
@@ -168,12 +168,9 @@ public class ChatUIFragment extends BaseFragment {
         }
     }
 
-    boolean isPlaying = false;
     MediaPlayer mediaPlayer = new MediaPlayer();
     Message currentMessage;
     MessageViewHolder currentViewHolder;
-    int audio_position;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

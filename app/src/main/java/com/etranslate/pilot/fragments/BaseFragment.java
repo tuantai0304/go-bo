@@ -52,6 +52,12 @@ public abstract class BaseFragment extends Fragment
     protected DatabaseReference m_dbMessage;
 
 
+    protected final String MODE_CHAT = "Real time chat";
+    protected final String MODE_VIDEO = "Video Conference";
+    protected final String MODE_IMAGE = "Image";
+
+    public static final String ARG_ROOMID = "roomId";
+    public static final String ARG_CREATE_OFFER = "createOffer";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
