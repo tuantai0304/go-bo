@@ -189,18 +189,23 @@ public class RequestListFragment extends BaseFragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
+
+
+                                /* TODO set Firebase user JAVA object instead of doding this */
+                                requestRef.child("translatorUid").setValue(mFirebaseUser.getUid());
+                                requestRef.child("translatorName").setValue(mFirebaseUser.getDisplayName());
+                                requestRef.child("translatorEmail").setValue(mFirebaseUser.getEmail());
+
+                                /* Change status of the request  */
+                                requestRef.child("acceptStatus").setValue("accepted");
+
                                 if (!mode.equals(MODE_VIDEO)) {
                                     changeToChatFragment(new_room_key);
                                 }
                                 else {
                                     changeToVideoConferenceFragment(new_room_key);
                                 }
-                                /* Change status of the request  */
-                                requestRef.child("acceptStatus").setValue("accepted");
-                                /* TODO set Firebase user JAVA object instead of doding this */
-                                requestRef.child("translatorUid").setValue(mFirebaseUser.getUid());
-                                requestRef.child("translatorName").setValue(mFirebaseUser.getDisplayName());
-                                requestRef.child("translatorEmail").setValue(mFirebaseUser.getEmail());
+
                             }
                         }
                     });
