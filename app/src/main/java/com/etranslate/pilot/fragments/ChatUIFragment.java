@@ -221,7 +221,6 @@ public class ChatUIFragment extends BaseFragment {
                             viewHolder.messageVoice.setVisibility(View.GONE);
                             break;
                         case "audio":
-
                             Toast.makeText(getContext(), "Audio type", Toast.LENGTH_SHORT).show();
                             viewHolder.messageImageView.setVisibility(ImageView.GONE);
                             viewHolder.messageTextView.setVisibility(TextView.GONE);
@@ -233,53 +232,6 @@ public class ChatUIFragment extends BaseFragment {
                                     primarySeekBarProgressUpdater();
                                 }
                             });
-//                            viewHolder.setMediaPlayer(mediaPlayer);
-//                            viewHolder.playMedia(friendlyMessage.getImageUrl());
-//                            final ImageButton btnPlay = viewHolder.btnPlay;
-
-//                            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//                                @Override
-//                                public void onCompletion(MediaPlayer mp) {
-//                                    btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
-//                                }
-//                            });
-
-//                            btnPlay.setOnClickListener(new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-////                                    boolean isPaused=false;
-////                                    mediaPlayer.release();
-////                                    try {
-////                                        mediaPlayer.setDataSource(friendlyMessage.getImageUrl());
-////                                        mediaPlayer.prepare();
-////                                    } catch (IOException e) {
-////                                        e.printStackTrace();
-////                                    }
-////                                    /* * what if pause?
-////                                    Not playing */
-////                                    if (!mediaPlayer.isPlaying()) {
-////                                        mediaPlayer.start();
-////                                        btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
-////
-////                                        String duration = Integer.toString(mediaPlayer.getDuration());
-////                                        Toast.makeText(getContext(), duration, Toast.LENGTH_SHORT).show();
-////                                    } else {
-////                                        mediaPlayer.pause();
-////                                        Toast.makeText(getContext(), "Pause playing", Toast.LENGTH_SHORT).show();
-////                                        btnPlay.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
-////                                    }
-////                                    mediaPlayer.release();
-////                                    mediaPlayer = null;
-//                                    if (currentPos == position)
-//
-//                                    playMedia(friendlyMessage.getImageUrl(), viewHolder.btnPlay, viewHolder.seekBarVoice, position);
-
-//                                    mediaPlayer = new MediaPlayer();
-//                                    mediaPlayer.setDataSource(friendlyMessage.);
-//                                    Toast.makeText(getContext(), friendlyMessage.getImageUrl(), Toast.LENGTH_SHORT).show();
-//                                }
-//                            });
 
                             break;
                         case "media":
@@ -298,15 +250,40 @@ public class ChatUIFragment extends BaseFragment {
 
 
                 /* Poplulate Display name and Avartar*/
-
                 viewHolder.messengerTextView.setText(friendlyMessage.getName());
+
+
                 if (friendlyMessage.getPhotoUrl() == null) {
-                    viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getContext(),
-                            R.drawable.ic_account_circle_black_36dp));
+                    if (friendlyMessage.getSenderID().equals(mFirebaseUser.getUid())) {
+                        viewHolder.messageImageView_other.setVisibility(View.GONE);
+                        viewHolder.messageImageView.setVisibility(View.VISIBLE);
+                        viewHolder.messageImageView.setImageDrawable(ContextCompat.getDrawable(getContext(),
+                                R.drawable.ic_account_circle_black_36dp));
+
+                    } else {
+                        viewHolder.messageImageView_other.setVisibility(View.VISIBLE);
+                        viewHolder.messageImageView.setVisibility(View.GONE);
+                        viewHolder.messageImageView_other.setImageDrawable(ContextCompat.getDrawable(getContext(),
+                                R.drawable.ic_account_circle_black_36dp));
+
+                    }
+
                 } else {
-                    Glide.with(getContext())
-                            .load(friendlyMessage.getPhotoUrl())
-                            .into(viewHolder.messengerImageView);
+                    if (friendlyMessage.getSenderID().equals(mFirebaseUser.getUid())) {
+                        viewHolder.messageImageView_other.setVisibility(View.GONE);
+                        viewHolder.messageImageView.setVisibility(View.VISIBLE);
+                        Glide.with(getContext())
+                                .load(friendlyMessage.getPhotoUrl())
+                                .into(viewHolder.messengerImageView);
+
+                    } else {
+                        viewHolder.messageImageView_other.setVisibility(View.VISIBLE);
+                        viewHolder.messageImageView.setVisibility(View.GONE);
+                        Glide.with(getContext())
+                                .load(friendlyMessage.getPhotoUrl())
+                                .into(viewHolder.messageImageView_other);
+                    }
+
                 }
 
             }
@@ -638,6 +615,7 @@ public class ChatUIFragment extends BaseFragment {
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         public TextView messageTextView;
         public ImageView messageImageView;
+        public ImageView messageImageView_other;
         public View messageVoice;
         public ImageButton btnPlay;
         public SeekBar seekBarVoice;
@@ -651,6 +629,7 @@ public class ChatUIFragment extends BaseFragment {
             super(v);
             messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
+            messageImageView_other = (ImageView) itemView.findViewById(R.id.messengerImageView_other);
             messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
             messageVoice = itemView.findViewById(R.id.messageAudioView);

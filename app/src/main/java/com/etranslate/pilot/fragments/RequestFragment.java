@@ -118,6 +118,13 @@ public class RequestFragment extends BaseFragment {
         String tarLang = spnTarLang.getSelectedItem().toString();
         String mode = spnModes.getSelectedItem().toString();
 
+        if (srcLang.equals(tarLang)) {
+            Toast.makeText(getActivity(), "Source Language and Target Language cannot be the same", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
         Request req = new Request(srcLang, tarLang, mode, null, null, mFirebaseUser.getUid());
 //        req.setUser(mFirebaseUser);
 
@@ -132,7 +139,7 @@ public class RequestFragment extends BaseFragment {
                         if (task.isSuccessful()) {
                             Toast.makeText(getActivity().getApplicationContext(), "New request created", Toast.LENGTH_SHORT).show();
                         }
-                        waitingTranslatorDialog.show();
+
 
                         waitingTranslatorDialog.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel request", new DialogInterface.OnClickListener() {
                             @Override
@@ -140,6 +147,8 @@ public class RequestFragment extends BaseFragment {
                                 new_request_ref.removeValue();
                             }
                         });
+
+                        waitingTranslatorDialog.show();
 
                     }
                 });
