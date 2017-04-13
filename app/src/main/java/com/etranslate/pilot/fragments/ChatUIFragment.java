@@ -1,11 +1,8 @@
 package com.etranslate.pilot.fragments;
 
 
-import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -14,7 +11,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -27,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -41,34 +36,24 @@ import com.etranslate.pilot.R;
 import com.etranslate.pilot.dto.Message;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.mobsandgeeks.saripaar.annotation.Url;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.Manifest.permission.CAMERA;
-import static android.Manifest.permission.CAPTURE_AUDIO_OUTPUT;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
-import static android.content.Context.AUDIO_SERVICE;
-import static android.content.Context.CAMERA_SERVICE;
-import static com.google.firebase.database.ServerValue.TIMESTAMP;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -88,7 +73,7 @@ public class ChatUIFragment extends BaseFragment {
     private String mParam2;
 
     /* UI elements */
-    private Button mSendButton;
+    private ImageButton mSendButton;
     private RecyclerView mMessageRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
     private ProgressBar mProgressBar;
@@ -255,33 +240,33 @@ public class ChatUIFragment extends BaseFragment {
 
                 if (friendlyMessage.getPhotoUrl() == null) {
                     if (friendlyMessage.getSenderID().equals(mFirebaseUser.getUid())) {
-                        viewHolder.messageImageView_other.setVisibility(View.GONE);
-                        viewHolder.messageImageView.setVisibility(View.VISIBLE);
-                        viewHolder.messageImageView.setImageDrawable(ContextCompat.getDrawable(getContext(),
+                        viewHolder.messengerImageView_other.setVisibility(View.GONE);
+                        viewHolder.messengerImageView.setVisibility(View.VISIBLE);
+                        viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getContext(),
                                 R.drawable.ic_account_circle_black_36dp));
 
                     } else {
-                        viewHolder.messageImageView_other.setVisibility(View.VISIBLE);
-                        viewHolder.messageImageView.setVisibility(View.GONE);
-                        viewHolder.messageImageView_other.setImageDrawable(ContextCompat.getDrawable(getContext(),
+                        viewHolder.messengerImageView_other.setVisibility(View.VISIBLE);
+                        viewHolder.messengerImageView.setVisibility(View.GONE);
+                        viewHolder.messengerImageView_other.setImageDrawable(ContextCompat.getDrawable(getContext(),
                                 R.drawable.ic_account_circle_black_36dp));
 
                     }
 
                 } else {
                     if (friendlyMessage.getSenderID().equals(mFirebaseUser.getUid())) {
-                        viewHolder.messageImageView_other.setVisibility(View.GONE);
+                        viewHolder.messengerImageView_other.setVisibility(View.GONE);
                         viewHolder.messageImageView.setVisibility(View.VISIBLE);
                         Glide.with(getContext())
                                 .load(friendlyMessage.getPhotoUrl())
                                 .into(viewHolder.messengerImageView);
 
                     } else {
-                        viewHolder.messageImageView_other.setVisibility(View.VISIBLE);
+                        viewHolder.messengerImageView_other.setVisibility(View.VISIBLE);
                         viewHolder.messageImageView.setVisibility(View.GONE);
                         Glide.with(getContext())
                                 .load(friendlyMessage.getPhotoUrl())
-                                .into(viewHolder.messageImageView_other);
+                                .into(viewHolder.messengerImageView_other);
                     }
 
                 }
@@ -332,7 +317,7 @@ public class ChatUIFragment extends BaseFragment {
             }
         });
 
-        mSendButton = (Button) v.findViewById(R.id.sendButton);
+        mSendButton = (ImageButton) v.findViewById(R.id.sendButton);
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -615,7 +600,7 @@ public class ChatUIFragment extends BaseFragment {
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         public TextView messageTextView;
         public ImageView messageImageView;
-        public ImageView messageImageView_other;
+        public ImageView messengerImageView_other;
         public View messageVoice;
         public ImageButton btnPlay;
         public SeekBar seekBarVoice;
@@ -629,7 +614,9 @@ public class ChatUIFragment extends BaseFragment {
             super(v);
             messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
-            messageImageView_other = (ImageView) itemView.findViewById(R.id.messengerImageView_other);
+
+            messengerImageView_other = (ImageView) itemView.findViewById(R.id.messengerImageView_other);
+
             messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
             messageVoice = itemView.findViewById(R.id.messageAudioView);

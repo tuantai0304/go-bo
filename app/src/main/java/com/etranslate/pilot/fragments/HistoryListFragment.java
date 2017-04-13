@@ -111,13 +111,13 @@ public class HistoryListFragment extends BaseFragment {
                     final String mode = request.getMode();
                     switch (mode) {
                         case MODE_CHAT:
-                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_chat));
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_mode_comment_black_36dp));
                             break;
                         case MODE_VIDEO:
-                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_action_call));
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_video_call_black_36dp));
                             break;
                         case MODE_IMAGE:
-                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_menu_report_image));
+                            viewHolder.modeImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_collections_black_36dp));
                             break;
 
                     }

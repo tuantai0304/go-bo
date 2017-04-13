@@ -27,33 +27,35 @@
             android:id="@+id/addMessageImageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            ads:srcCompat="@drawable/ic_menu_gallery"/>
+            android:background="@drawable/ic_add_a_photo_black_36dp"/>
 
         <ImageButton
                     android:id="@+id/voiceMessageImageView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    ads:srcCompat="@android:drawable/presence_audio_online"/>
+                    android:background="@drawable/ic_settings_voice_black_36dp"/>
+
         <ImageButton
                     android:id="@+id/imageMessageImageView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    ads:srcCompat="@drawable/ic_menu_camera"/>
+                    android:background="@drawable/ic_attach_file_black_36dp"/>
 
         <EditText
             android:id="@+id/messageEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1"/>
+            android:layout_weight="1.01"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
+            android:layout_gravity="center_vertical"
             android:enabled="false"
-            android:text="SEND"/>
+            android:background="@drawable/ic_menu_send"
+            />
 
     </LinearLayout>
 
