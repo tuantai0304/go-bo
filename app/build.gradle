@@ -52,6 +52,8 @@ dependencies {
 
     /* Validation */
     compile 'com.mobsandgeeks:android-saripaar:2.0.3'
+
+    compile 'com.stephentuso:welcome:1.2.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

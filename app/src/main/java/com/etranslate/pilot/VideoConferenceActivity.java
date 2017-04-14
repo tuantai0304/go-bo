@@ -111,6 +111,13 @@ public class VideoConferenceActivity extends BaseActivity {
 
         ArrayList<PeerConnection.IceServer> iceServers = new ArrayList<>();
         iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stunserver.org"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun.softjoys.com"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun3.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("turn:numb.viagenie.ca","webrtc@live.com","muazkh"));
+        iceServers.add(new PeerConnection.IceServer("turn:192.158.29.39:3478?transport=udp","28224511:1379330808","JZEOEt2V3Qb0y27GRntt2u2PAYA="));
+        iceServers.add(new PeerConnection.IceServer("turn:192.158.29.39:3478?transport=tcp","28224511:1379330808","JZEOEt2V3Qb0y27GRntt2u2PAYA="));
+
 
         peerConnection = peerConnectionFactory.createPeerConnection(
                 iceServers,

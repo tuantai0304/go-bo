@@ -25,6 +25,7 @@ import com.etranslate.pilot.fragments.HistoryListFragment;
 import com.etranslate.pilot.fragments.RequestFragment;
 import com.etranslate.pilot.fragments.RequestListFragment;
 import com.etranslate.pilot.user.UserLoginActivity;
+import com.stephentuso.welcome.WelcomeHelper;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -36,13 +37,24 @@ public class MainActivity extends BaseActivity
     /* Static variable */
     FragmentManager supportFragmentManager;
     FragmentTransaction fragmentTransaction;
+    private WelcomeHelper welcomeScreen;
 
 //    View content_main;
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        welcomeScreen.onSaveInstanceState(outState);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /* Show welcome screen */
+        welcomeScreen = new WelcomeHelper(this, WelcomeScreen.class);
+        welcomeScreen.show(savedInstanceState);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -81,7 +93,9 @@ public class MainActivity extends BaseActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        setDrawerNavHeaderInformation(navigationView);
+
+        if (mFirebaseUser != null)
+            setDrawerNavHeaderInformation(navigationView);
 
 
     }
