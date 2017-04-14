@@ -53,7 +53,13 @@ dependencies {
     /* Validation */
     compile 'com.mobsandgeeks:android-saripaar:2.0.3'
 
+    /* Welcom screen */
     compile 'com.stephentuso:welcome:1.2.1'
+
+    /* Material design */
+    /*compile 'com.github.navasmdc:MaterialDesign:1.5@aar'*/
+  /*  compile 'com.github.rey5137:material:1.2.4'
+    compile 'com.github.medyo:fancybuttons:1.8.3'*/
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -262,7 +262,7 @@ public class VideoConferenceActivity extends BaseActivity {
         VideoRendererGui.setView(videoView, null);
         try {
             otherPeerRenderer = VideoRendererGui.createGui(0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
-            VideoRenderer renderer = VideoRendererGui.createGui(50, 50, 50, 50, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
+            VideoRenderer renderer = VideoRendererGui.createGui(60, 0, 40, 40, VideoRendererGui.ScalingType.SCALE_ASPECT_BALANCED, true);
             localVideoTrack.addRenderer(renderer);
         } catch (Exception e) {
             e.printStackTrace();
@@ -367,6 +367,7 @@ public class VideoConferenceActivity extends BaseActivity {
     public void peerConnectionClose(View view) {
         if (peerConnection != null)
             peerConnection.close();
+        Toast.makeText(getApplicationContext(), "Video call end. Thank you", Toast.LENGTH_SHORT).show();
         finish();
     }
 

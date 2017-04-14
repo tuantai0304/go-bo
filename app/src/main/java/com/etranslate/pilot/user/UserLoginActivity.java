@@ -83,7 +83,7 @@ public class UserLoginActivity extends BaseActivity
 
         edtPassword = (EditText) findViewById(R.id.edtPassword);
 
-        textView = (TextView) findViewById(R.id.textView4);
+//        textView = (TextView) findViewById(R.id.textView4);
 //        textView.setText(edtPassword.getText().toString().trim());
 
         btnSignIn = (Button) findViewById(R.id.btnSignIn);

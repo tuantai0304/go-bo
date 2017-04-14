@@ -49,6 +49,7 @@ public class RegisterActivity extends BaseActivity implements Validator.Validati
         setContentView(R.layout.activity_register);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+//        setTitle("Register new user");
 
         edtEmail = (EditText) findViewById(R.id.edtEmail);
         edtPassword = (EditText) findViewById(R.id.edtPassword);

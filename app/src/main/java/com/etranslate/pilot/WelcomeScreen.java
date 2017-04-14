@@ -22,7 +22,7 @@ public class WelcomeScreen extends WelcomeActivity {
         return new WelcomeConfiguration.Builder(this)
                 .defaultBackgroundColor(R.color.colorPrimary)
                 .page(new TitlePage(R.drawable.logo,
-                        "Title")
+                        "Welcome to Pilot Translate")
                 )
                 .bottomLayout(WelcomeConfiguration.BottomLayout.BUTTON_BAR)
 //                .page(new BasicPage(R.drawable.image,
