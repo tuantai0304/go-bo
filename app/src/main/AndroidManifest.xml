@@ -37,6 +37,10 @@
 
         <activity android:name=".WelcomeScreen"
             android:theme="@style/WelcomeScreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity

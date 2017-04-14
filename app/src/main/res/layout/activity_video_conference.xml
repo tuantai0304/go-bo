@@ -14,14 +14,14 @@
         android:layout_height="match_parent" />
 
     <Button
-        android:text="@string/connect"
+        android:text="@string/endcall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:id="@+id/button"
-        android:onClick="onConnect" />
+        android:onClick="peerConnectionClose" />
 
 
     <Button

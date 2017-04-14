@@ -12,6 +12,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.etranslate.pilot.fragments.BaseFragment;
@@ -304,6 +305,8 @@ public class VideoConferenceActivity extends BaseActivity {
         @Override
         public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
             Log.d("RTCAPP", "onIceConnectionChange:" + iceConnectionState.toString());
+            if (iceConnectionState == PeerConnection.IceConnectionState.DISCONNECTED)
+                peerConnectionClose(null);
         }
 
         @Override
@@ -315,6 +318,7 @@ public class VideoConferenceActivity extends BaseActivity {
         public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
 
         }
+
 
         @Override
         public void onIceCandidate(IceCandidate iceCandidate) {
@@ -336,6 +340,7 @@ public class VideoConferenceActivity extends BaseActivity {
         @Override
         public void onDataChannel(DataChannel dataChannel) {
 
+
         }
 
         @Override
@@ -348,7 +353,6 @@ public class VideoConferenceActivity extends BaseActivity {
      * Send message to Room of Firebase database
      *
      * */
-
     private void sendMessage(String id, Object o) {
         String key = m_dbRooms.child(room_id).push().getKey();
 //        ref.child(room_id).child(key).child(SENDER_ID).setValue(id.trim().toLowerCase());
@@ -360,4 +364,15 @@ public class VideoConferenceActivity extends BaseActivity {
         m_dbRooms.child(room_id).child(key).setValue(map);
     }
 
+    public void peerConnectionClose(View view) {
+        if (peerConnection != null)
+            peerConnection.close();
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        peerConnectionClose(null);
+    }
 }
